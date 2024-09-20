@@ -1,20 +1,14 @@
 package com.msb.mall.product.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.msb.mall.product.entity.CategoryEntity;
-import com.msb.mall.product.service.CategoryService;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
+import com.msb.mall.product.entity.CategoryEntity;
+import com.msb.mall.product.service.CategoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.Map;
 
 
 
@@ -35,7 +29,7 @@ public class CategoryController {
      * 列表
      */
     @RequestMapping("/list")
-    @RequiresPermissions("product:category:list")
+//    @RequiresPermissions("product:category:list")
     public R list(@RequestParam Map<String, Object> params){
         PageUtils page = categoryService.queryPage(params);
 
@@ -47,7 +41,7 @@ public class CategoryController {
      * 信息
      */
     @RequestMapping("/info/{catId}")
-    @RequiresPermissions("product:category:info")
+//    @RequiresPermissions("product:category:info")
     public R info(@PathVariable("catId") Long catId){
 		CategoryEntity category = categoryService.getById(catId);
 
@@ -58,7 +52,7 @@ public class CategoryController {
      * 保存
      */
     @RequestMapping("/save")
-    @RequiresPermissions("product:category:save")
+//    @RequiresPermissions("product:category:save")
     public R save(@RequestBody CategoryEntity category){
 		categoryService.save(category);
 
@@ -69,7 +63,7 @@ public class CategoryController {
      * 修改
      */
     @RequestMapping("/update")
-    @RequiresPermissions("product:category:update")
+//    @RequiresPermissions("product:category:update")
     public R update(@RequestBody CategoryEntity category){
 		categoryService.updateById(category);
 
@@ -80,7 +74,7 @@ public class CategoryController {
      * 删除
      */
     @RequestMapping("/delete")
-    @RequiresPermissions("product:category:delete")
+//    @RequiresPermissions("product:category:delete")
     public R delete(@RequestBody Long[] catIds){
 		categoryService.removeByIds(Arrays.asList(catIds));
 

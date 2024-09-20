@@ -1,4 +1,4 @@
-package com.msb.mall.mallmember;
+package com.msb.mall.member;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

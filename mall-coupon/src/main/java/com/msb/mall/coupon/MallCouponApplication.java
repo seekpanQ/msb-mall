@@ -1,4 +1,4 @@
-package com.msb.mall.mallcoupon;
+package com.msb.mall.coupon;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

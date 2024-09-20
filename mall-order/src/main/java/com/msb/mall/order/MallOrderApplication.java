@@ -1,4 +1,4 @@
-package com.msb.mall.mallorder;
+package com.msb.mall.order;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,10 +1,10 @@
-package com.msb.mall.mallorder;
+package com.msb.mall.coupon;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MallOrderApplicationTests {
+class MallCouponApplicationTests {
 
     @Test
     void contextLoads() {

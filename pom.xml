@@ -18,6 +18,7 @@
         <module>mall-coupon</module>
         <module>mall-order</module>
         <module>mall-product</module>
+        <module>mall-gateway</module>
         <module>renren-fast</module>
         <module>renren-generator-master</module>
     </modules>

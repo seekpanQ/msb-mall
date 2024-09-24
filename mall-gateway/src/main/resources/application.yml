@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: mall-gateway
+  # 注册中心的配置
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.91.131:8848
+    gateway:
+      routes:
+        - id: route1
+          uri: http://www.baidu.com
+          predicates:
+            - Query=url,baidu
+        - id: route2
+          uri: http://jd.com
+          predicates:
+            - Query=url,jd
+# 指定注册中心的服务端口
+server:
+  port: 8070

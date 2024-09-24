@@ -6,6 +6,8 @@ import com.msb.mall.order.entity.OrderEntity;
 import com.msb.mall.order.feign.ProductService;
 import com.msb.mall.order.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -19,6 +21,7 @@ import java.util.Map;
  * @email lixin_qiu@163.com
  * @date 2024-09-20 15:39:16
  */
+@RefreshScope
 @RestController
 @RequestMapping("order/order")
 public class OrderController {
@@ -28,10 +31,21 @@ public class OrderController {
     @Autowired
     private ProductService productService;
 
+    @Value("${user.userName}")
+    private String userName;
+
+    @Value("${user.age}")
+    private int age;
+
     @GetMapping("/products")
     public R queryProduct() {
         // OpenFegin 远程调用服务
         return R.ok().put("products", productService.queryAllBrand());
+    }
+
+    @GetMapping("/users")
+    public R queryUser() {
+        return R.ok().put("userName", userName).put("age", age);
     }
 
     /**

@@ -24,6 +24,9 @@ spring:
             - RewritePath=/app/(?<segment>/?.*), /renren-fast/$\{segment}
 # localhost:8070/app/captcha.jpg -->
 # localhost:8080/app/captcha.jpg localhost:8080/renren-fast/captcha.jpg
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials Vary, RETAIN_UNIQUE
+
 # 指定注册中心的服务端口
 server:
   port: 8070

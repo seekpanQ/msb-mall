@@ -62,6 +62,6 @@ public class CategoryEntity implements Serializable {
 	 * 当前类别所拥有的所有的子类
 	 */
 	@TableField(exist = false)
-	private List<CategoryEntity> childrens;
+	private List<CategoryEntity> children;
 
 }

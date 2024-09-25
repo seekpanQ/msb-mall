@@ -44,7 +44,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                 .filter(categoryEntity -> categoryEntity.getParentCid() == 0)
                 // 根据大类找到多有的小类  递归的方式实现
                 .map(categoryEntity -> {
-                    categoryEntity.setChildrens(getCategoryChildren(categoryEntity, categoryEntities));
+                    categoryEntity.setChildren(getCategoryChildren(categoryEntity, categoryEntities));
                     return categoryEntity;
                 }).sorted((entity1, entity2) -> {
                     return (entity1.getSort() == null ? 0 : entity1.getSort())
@@ -71,7 +71,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                         })
                         // 根据这个小类递归找到对应的小小类
                         .map(entity -> {
-                            entity.setChildrens(getCategoryChildren(entity, categoryEntities));
+                            entity.setChildren(getCategoryChildren(entity, categoryEntities));
                             return entity;
                         }).sorted((entity1, entity2) -> {
                             return (entity1.getSort() == null ? 0 : entity1.getSort())

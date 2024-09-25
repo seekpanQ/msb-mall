@@ -16,6 +16,12 @@ spring:
           uri: http://jd.com
           predicates:
             - Query=url,jd
+        - id: product_route
+          uri: lb://mall-product
+          predicates:
+            - Path=/app/product/**
+          filters:
+            - RewritePath=/app/(?<segment>/?.*), /$\{segment}
         - id: app_route
           uri: lb://renren-fast
           predicates:

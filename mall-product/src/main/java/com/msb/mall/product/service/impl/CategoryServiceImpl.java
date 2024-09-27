@@ -81,4 +81,17 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return collect;
     }
 
+    /**
+     * 逻辑批量删除操作
+     *
+     * @param ids
+     */
+    @Override
+    public void removeCategoryByIds(List<Long> ids) {
+        // TODO  1.检查类别数据是否在其他业务中使用
+
+        // 2.批量逻辑删除操作
+        baseMapper.deleteBatchIds(ids);
+    }
+
 }

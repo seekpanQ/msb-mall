@@ -67,7 +67,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                 categoryEntities.stream()
                         // 根据大类找到他的直属的小类
                         .filter(entity -> {
-                            return categoryEntity.getCatId() == entity.getParentCid();
+                            //注意 Long数据比较，不在-128~127之间的数据是new Long()对象
+                            return entity.getParentCid().equals(categoryEntity.getCatId());
                         })
                         // 根据这个小类递归找到对应的小小类
                         .map(entity -> {

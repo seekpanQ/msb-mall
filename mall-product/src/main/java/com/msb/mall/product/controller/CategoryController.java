@@ -77,6 +77,19 @@ public class CategoryController {
     }
 
     /**
+     * 批量修改
+     *
+     * @param categories
+     * @return
+     */
+    @RequestMapping("/updateBatch")
+//    @RequiresPermissions("product:category:update")
+    public R updateBatch(@RequestBody CategoryEntity[] categories) {
+        categoryService.updateBatchById(Arrays.asList(categories));
+        return R.ok();
+    }
+
+    /**
      * 删除
      */
     @RequestMapping("/delete")

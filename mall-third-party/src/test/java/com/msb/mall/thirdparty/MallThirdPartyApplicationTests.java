@@ -1,8 +1,10 @@
 package com.msb.mall.thirdparty;
 
 import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.FileInputStream;
@@ -11,6 +13,9 @@ import java.io.InputStream;
 
 @SpringBootTest
 class MallThirdPartyApplicationTests {
+
+    @Autowired
+    private OSSClient ossClient;
 
     @Test
     void contextLoads() {
@@ -27,6 +32,18 @@ class MallThirdPartyApplicationTests {
         // 创建OSSClient实例。
         OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
 
+        // 填写本地文件的完整路径。如果未指定本地路径，则默认从示例程序所属项目对应本地路径中上传文件流。
+        InputStream inputStream = new FileInputStream("C:\\Users\\seekpan\\Desktop\\work\\personal\\seekpan.jpg");
+        // 依次填写Bucket名称（例如examplebucket）和Object完整路径（例如exampledir/exampleobject.txt）。Object完整路径中不能包含Bucket名称。
+        ossClient.putObject("study-seekpan-mall", "seekpan.jpg", inputStream);
+
+        // 关闭OSSClient。
+        ossClient.shutdown();
+        System.out.println("长传图片成功...");
+    }
+
+    @Test
+    public void testUploadFile2() throws FileNotFoundException {
         // 填写本地文件的完整路径。如果未指定本地路径，则默认从示例程序所属项目对应本地路径中上传文件流。
         InputStream inputStream = new FileInputStream("C:\\Users\\seekpan\\Desktop\\work\\personal\\seekpan.jpg");
         // 依次填写Bucket名称（例如examplebucket）和Object完整路径（例如exampledir/exampleobject.txt）。Object完整路径中不能包含Bucket名称。

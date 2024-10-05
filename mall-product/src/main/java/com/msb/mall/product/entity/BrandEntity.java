@@ -2,6 +2,7 @@ package com.msb.mall.product.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.msb.common.valid.groups.AddGroupsInterface;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
@@ -31,13 +32,13 @@ public class BrandEntity implements Serializable {
     /**
      * 品牌名
      */
-    @NotBlank(message = "品牌的名称不能为空")
+    @NotBlank(message = "品牌的名称不能为空", groups = {AddGroupsInterface.class})
     private String name;
     /**
      * 品牌logo地址
      */
-    @NotBlank(message = "logo不能为空")
-    @URL(message = "logo必须是一个合法的URL地址")
+    @NotBlank(message = "logo不能为空", groups = {AddGroupsInterface.class})
+    @URL(message = "logo必须是一个合法的URL地址", groups = {AddGroupsInterface.class})
     private String logo;
     /**
      * 介绍
@@ -50,14 +51,14 @@ public class BrandEntity implements Serializable {
     /**
      * 检索首字母
      */
-    @NotBlank(message = "检索首字母不能为空")
-    @Pattern(regexp = "^[a-zA-Z]$", message = "检索首字母必须是单个的字母")
+    @NotBlank(message = "检索首字母不能为空", groups = {AddGroupsInterface.class})
+    @Pattern(regexp = "^[a-zA-Z]$", message = "检索首字母必须是单个的字母", groups = {AddGroupsInterface.class})
     private String firstLetter;
     /**
      * 排序
      */
-    @NotNull(message = "排序不能为null")
-    @Min(value = 0, message = "排序不能小于0")
+    @NotNull(message = "排序不能为null", groups = {AddGroupsInterface.class})
+    @Min(value = 0, message = "排序不能小于0",groups={AddGroupsInterface.class})
     private Integer sort;
 
 }

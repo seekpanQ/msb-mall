@@ -3,6 +3,7 @@ package com.msb.mall.product.controller;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
 import com.msb.common.valid.groups.AddGroupsInterface;
+import com.msb.common.valid.groups.UpdateGroupsInterface;
 import com.msb.mall.product.entity.BrandEntity;
 import com.msb.mall.product.service.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +91,7 @@ public class BrandController {
      */
     @RequestMapping("/update")
 //    @RequiresPermissions("product:brand:update")
-    public R update(@RequestBody BrandEntity brand) {
+    public R update(@Validated(UpdateGroupsInterface.class) @RequestBody BrandEntity brand) {
         brandService.updateById(brand);
 
         return R.ok();

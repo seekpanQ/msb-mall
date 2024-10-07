@@ -10,9 +10,12 @@ import com.msb.mall.product.dao.AttrDao;
 import com.msb.mall.product.entity.AttrAttrgroupRelationEntity;
 import com.msb.mall.product.entity.AttrEntity;
 import com.msb.mall.product.service.AttrService;
+import com.msb.mall.product.vo.AttrGroupRelationVO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,6 +54,18 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
                 .map((entity) -> this.getById(entity.getAttrId()))
                 .filter((entity) -> entity != null).collect(Collectors.toList());
         return attrEntities;
+    }
+
+    @Override
+    public void deleteRelation(AttrGroupRelationVO[] vos) {
+        //讲接收的数据对象转为一个entity实体对象
+        List<AttrAttrgroupRelationEntity> list = Arrays.asList(vos).stream().map((item) -> {
+            AttrAttrgroupRelationEntity entity = new AttrAttrgroupRelationEntity();
+            BeanUtils.copyProperties(item, entity);
+            return entity;
+        }).collect(Collectors.toList());
+        //批量删除关联表中的数据
+        attrAttrgroupRelationDao.removeBatchRelation(list);
     }
 
 }

@@ -4,6 +4,7 @@ import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
 import com.msb.mall.product.entity.AttrGroupEntity;
 import com.msb.mall.product.service.AttrGroupService;
+import com.msb.mall.product.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,8 @@ import java.util.Map;
 public class AttrGroupController {
     @Autowired
     private AttrGroupService attrGroupService;
+    @Autowired
+    private CategoryService categoryService;
 
     /**
      * 列表
@@ -44,7 +47,10 @@ public class AttrGroupController {
 //    @RequiresPermissions("product:attrgroup:info")
     public R info(@PathVariable("attrGroupId") Long attrGroupId) {
         AttrGroupEntity attrGroup = attrGroupService.getById(attrGroupId);
-
+        //根据找到的属性组对应的分类id找到对应的[一级，二级，三级]数据
+        Long catelogId = attrGroup.getCatelogId();
+        Long[] paths = categoryService.findCatelogPath(catelogId);
+        attrGroup.setCatelogPath(paths);
         return R.ok().put("attrGroup", attrGroup);
     }
 

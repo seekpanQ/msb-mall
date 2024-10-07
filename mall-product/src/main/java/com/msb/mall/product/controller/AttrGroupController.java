@@ -2,13 +2,16 @@ package com.msb.mall.product.controller;
 
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
+import com.msb.mall.product.entity.AttrEntity;
 import com.msb.mall.product.entity.AttrGroupEntity;
 import com.msb.mall.product.service.AttrGroupService;
+import com.msb.mall.product.service.AttrService;
 import com.msb.mall.product.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
@@ -26,6 +29,8 @@ public class AttrGroupController {
     private AttrGroupService attrGroupService;
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private AttrService attrService;
 
     /**
      * 列表
@@ -52,6 +57,13 @@ public class AttrGroupController {
         Long[] paths = categoryService.findCatelogPath(catelogId);
         attrGroup.setCatelogPath(paths);
         return R.ok().put("attrGroup", attrGroup);
+    }
+
+    @GetMapping("/{attrgroupId}/attr/relation")
+//    @RequiresPermissions("product:attrgroup:save")
+    public R attrRelation(@PathVariable("attrgroupId") Long attrgroupId) {
+        List<AttrEntity> list = attrService.getRelationAttr(attrgroupId);
+        return R.ok().put("data", list);
     }
 
     /**

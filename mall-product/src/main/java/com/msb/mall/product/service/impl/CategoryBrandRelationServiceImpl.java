@@ -1,6 +1,7 @@
 package com.msb.mall.product.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.msb.common.utils.PageUtils;
@@ -45,6 +46,23 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
         categoryBrandRelation.setBrandName(brandEntity.getName());
         categoryBrandRelation.setCatelogName(categoryEntity.getName());
         this.save(categoryBrandRelation);
+    }
+
+    @Override
+    public void updateBrandName(Long brandId, String name) {
+        CategoryBrandRelationEntity entity = new CategoryBrandRelationEntity();
+        entity.setBrandId(brandId);
+        entity.setBrandName(name);
+        this.update(entity,
+                new UpdateWrapper<CategoryBrandRelationEntity>().eq("brand_id", brandId));
+    }
+
+    @Override
+    public void updateCatelogName(Long catId, String name) {
+        CategoryBrandRelationEntity entity = new CategoryBrandRelationEntity();
+        entity.setCatelogId(catId);
+        entity.setCatelogName(name);
+        this.update(entity, new UpdateWrapper<CategoryBrandRelationEntity>().eq("catelog_id", catId));
     }
 
 }

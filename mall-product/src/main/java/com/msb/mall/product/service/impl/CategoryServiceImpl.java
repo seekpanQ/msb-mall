@@ -7,8 +7,11 @@ import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.Query;
 import com.msb.mall.product.dao.CategoryDao;
 import com.msb.mall.product.entity.CategoryEntity;
+import com.msb.mall.product.service.CategoryBrandRelationService;
 import com.msb.mall.product.service.CategoryService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +22,9 @@ import java.util.stream.Collectors;
 
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
+
+    @Autowired
+    private CategoryBrandRelationService categoryBrandRelationService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -103,6 +109,14 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         List<Long> parentPath = findParentPath(catelogId, paths);
         Collections.reverse(parentPath);
         return parentPath.toArray(new Long[parentPath.size()]);
+    }
+
+    @Transactional
+    @Override
+    public void updateDetail(CategoryEntity category) {
+        this.updateById(category);
+
+        categoryBrandRelationService.updateCatelogName(category.getCatId(), category.getName());
     }
 
     /**

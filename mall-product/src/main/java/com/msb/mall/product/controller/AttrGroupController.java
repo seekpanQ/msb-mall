@@ -73,6 +73,14 @@ public class AttrGroupController {
         return R.ok().put("data", list);
     }
 
+    @GetMapping("/{attrgroupId}/noattr/relation")
+//    @RequiresPermissions("product:attrgroup:save")
+    public R attrNoRelation(@PathVariable("attrgroupId") Long attrgroupId,
+                            @RequestParam Map<String, Object> params) {
+        PageUtils pageUtils = attrService.getNoAttrRelation(params, attrgroupId);
+        return R.ok().put("page", pageUtils);
+    }
+
     @PostMapping("/attr/relation/delete")
     public R relationDelete(@RequestBody AttrGroupRelationVO[] vos) {
         attrService.deleteRelation(vos);

@@ -4,6 +4,7 @@ import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
 import com.msb.mall.product.entity.AttrEntity;
 import com.msb.mall.product.entity.AttrGroupEntity;
+import com.msb.mall.product.service.AttrAttrgroupRelationService;
 import com.msb.mall.product.service.AttrGroupService;
 import com.msb.mall.product.service.AttrService;
 import com.msb.mall.product.service.CategoryService;
@@ -32,6 +33,8 @@ public class AttrGroupController {
     private CategoryService categoryService;
     @Autowired
     private AttrService attrService;
+    @Autowired
+    private AttrAttrgroupRelationService relationService;
 
     /**
      * 列表
@@ -95,6 +98,12 @@ public class AttrGroupController {
     public R save(@RequestBody AttrGroupEntity attrGroup) {
         attrGroupService.save(attrGroup);
 
+        return R.ok();
+    }
+
+    @RequestMapping("/attr/relation")
+    public R saveBatch(@RequestBody List<AttrGroupRelationVO> vos) {
+        relationService.saveBatch(vos);
         return R.ok();
     }
 

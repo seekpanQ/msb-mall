@@ -12,13 +12,16 @@ import com.msb.mall.product.dao.AttrGroupDao;
 import com.msb.mall.product.entity.AttrAttrgroupRelationEntity;
 import com.msb.mall.product.entity.AttrEntity;
 import com.msb.mall.product.entity.AttrGroupEntity;
+import com.msb.mall.product.service.AttrAttrgroupRelationService;
 import com.msb.mall.product.service.AttrGroupService;
 import com.msb.mall.product.service.AttrService;
 import com.msb.mall.product.vo.AttrGroupRelationVO;
+import com.msb.mall.product.vo.AttrVO;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +34,8 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
     @Autowired
     private AttrAttrgroupRelationDao attrAttrgroupRelationDao;
+    @Autowired
+    private AttrAttrgroupRelationService attrAttrgroupRelationService;
     @Autowired
     private AttrGroupService attrGroupService;
     @Autowired
@@ -114,6 +119,42 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
         IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params), wrapper);
         return new PageUtils(page);
+    }
+
+    @Override
+    public PageUtils queryBasePage(Map<String, Object> params, Long catelogId) {
+        QueryWrapper<AttrEntity> wrapper = new QueryWrapper<>();
+        //1.根据类别编号查询
+        if (catelogId != 0) {
+            wrapper.eq("catelog_id", catelogId);
+        }
+
+        //2.根据key模糊查询
+        String key = (String) params.get("key");
+        if (StringUtils.isNotEmpty(key)) {
+            wrapper.eq("attr_id", key).or().like("attr_name", key);
+        }
+
+        //3. 分页查询
+        IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params), wrapper);
+        return new PageUtils(page);
+    }
+
+    @Transactional
+    @Override
+    public void saveAttr(AttrVO vo) {
+        // 1.保存规格参数的正常信息
+        AttrEntity attrEntity = new AttrEntity();
+        BeanUtils.copyProperties(vo, attrEntity);
+        this.save(attrEntity);
+        //2.保存规格参数和属性组的对应信息
+        if (vo.getAttrGroupId() != null) {
+            AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
+            attrAttrgroupRelationEntity.setAttrGroupId(vo.getAttrGroupId());
+            attrAttrgroupRelationEntity.setAttrId(vo.getAttrId());
+            //将关联的数据保存到对应的关联表中
+            attrAttrgroupRelationService.save(attrAttrgroupRelationEntity);
+        }
     }
 
 }

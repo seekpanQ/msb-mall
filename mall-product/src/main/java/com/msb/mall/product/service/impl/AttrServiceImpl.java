@@ -187,4 +187,43 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         }
     }
 
+    /**
+     * 根据规格参数ID查询对应的详细信息
+     * 1.规格参数的具体信息
+     * 2.关联的属性组信息
+     * 3.关联的类别信息
+     *
+     * @param attrId
+     * @return
+     */
+    @Override
+    public AttrResponseVo getAttrInfo(Long attrId) {
+        // 声明返回的对象
+        AttrResponseVo responseVo = new AttrResponseVo();
+        // 1.根据ID查询规格参数的基本信息
+        AttrEntity attrEntity = this.getById(attrId);
+        BeanUtils.copyProperties(attrEntity, responseVo);
+
+        // 2.查询关联的属性组信息 中间表
+        AttrAttrgroupRelationEntity relationEntity = attrAttrgroupRelationDao.selectOne(
+                new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrEntity.getAttrId()));
+        if (relationEntity != null) {
+            AttrGroupEntity attrGroupEntity = attrGroupService.getById(relationEntity.getAttrGroupId());
+            responseVo.setAttrGroupId(attrGroupEntity.getAttrGroupId());
+            if (attrGroupEntity != null) {
+                responseVo.setGroupName(attrGroupEntity.getAttrGroupName());
+            }
+        }
+        // 3.查询关联的类别信息
+        Long catelogId = attrEntity.getCatelogId();
+        Long[] catelogPath = categoryService.findCatelogPath(catelogId);
+        responseVo.setCatelogPath(catelogPath);
+
+        CategoryEntity categoryEntity = categoryService.getById(catelogId);
+        if (categoryEntity != null) {
+            responseVo.setCatelogName(categoryEntity.getName());
+        }
+        return responseVo;
+    }
+
 }

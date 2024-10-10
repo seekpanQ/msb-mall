@@ -163,7 +163,9 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
                 // 获取到属性组的ID，然后根据属性组的ID我们来查询属性组的名称
                 AttrGroupEntity attrGroupEntity
                         = attrGroupService.getById(attrAttrgroupRelationEntity.getAttrGroupId());
-                responseVo.setGroupName(attrGroupEntity.getAttrGroupName());
+                if (attrGroupEntity != null) {
+                    responseVo.setGroupName(attrGroupEntity.getAttrGroupName());
+                }
             }
             return responseVo;
         }).collect(Collectors.toList());
@@ -179,10 +181,11 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         BeanUtils.copyProperties(vo, attrEntity);
         this.save(attrEntity);
         //2.保存规格参数和属性组的对应信息
-        if (vo.getAttrGroupId() != null) {
+        if (vo.getAttrGroupId() != null && vo.getAttrType() == ProductConstant.AttrEnum.ATTR_TYPE_BASE.getCode()) {
             AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
+            // 设置相关的属性
             attrAttrgroupRelationEntity.setAttrGroupId(vo.getAttrGroupId());
-            attrAttrgroupRelationEntity.setAttrId(vo.getAttrId());
+            attrAttrgroupRelationEntity.setAttrId(attrEntity.getAttrId());
             //将关联的数据保存到对应的关联表中
             attrAttrgroupRelationService.save(attrAttrgroupRelationEntity);
         }
@@ -210,8 +213,8 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
                 new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrEntity.getAttrId()));
         if (relationEntity != null) {
             AttrGroupEntity attrGroupEntity = attrGroupService.getById(relationEntity.getAttrGroupId());
-            responseVo.setAttrGroupId(attrGroupEntity.getAttrGroupId());
             if (attrGroupEntity != null) {
+                responseVo.setAttrGroupId(attrGroupEntity.getAttrGroupId());
                 responseVo.setGroupName(attrGroupEntity.getAttrGroupName());
             }
         }
@@ -234,21 +237,23 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         BeanUtils.copyProperties(attr, attrEntity);
         // 1.更新基本数据
         this.updateById(attrEntity);
-        // 2.修改分组关联的关系
-        AttrAttrgroupRelationEntity relationEntity = new AttrAttrgroupRelationEntity();
-        relationEntity.setAttrId(attr.getAttrId());
-        relationEntity.setAttrGroupId(attr.getAttrGroupId());
-//      //判断是否存在对应的数据
-        Integer count = attrAttrgroupRelationDao.selectCount(
-                new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
-        if (count > 0) {
-            // 说明有记录，直接更新
-            attrAttrgroupRelationDao.update(relationEntity,
-                    new UpdateWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
-        } else {
-            // 说明没有记录，直接插入
-            attrAttrgroupRelationDao.insert(relationEntity);
+        if (attrEntity.getAttrType() == ProductConstant.AttrEnum.ATTR_TYPE_BASE.getCode()) {
+            // 2.修改分组关联的关系
+            AttrAttrgroupRelationEntity relationEntity = new AttrAttrgroupRelationEntity();
+            relationEntity.setAttrId(attrEntity.getAttrId());
+            relationEntity.setAttrGroupId(attr.getAttrGroupId() == null ? 0 : attr.getAttrGroupId());
+            //判断是否存在对应的数据
+            Integer count = attrAttrgroupRelationDao.selectCount(
+                    new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
+            if (count > 0) {
+                // 说明有记录，直接更新
+                attrAttrgroupRelationDao.update(relationEntity,
+                        new UpdateWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
+            } else {
+                // 说明没有记录，直接插入
+                attrAttrgroupRelationDao.insert(relationEntity);
 
+            }
         }
 
     }

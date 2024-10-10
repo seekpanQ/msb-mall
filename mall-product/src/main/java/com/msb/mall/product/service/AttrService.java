@@ -32,5 +32,7 @@ public interface AttrService extends IService<AttrEntity> {
     void saveAttr(AttrVO vo);
 
     AttrResponseVo getAttrInfo(Long attrId);
+
+    void updateBaseAttr(AttrVO attr);
 }
 

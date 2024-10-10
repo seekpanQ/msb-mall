@@ -1,6 +1,7 @@
 package com.msb.mall.product.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.msb.common.constant.ProductConstant;
@@ -224,6 +225,32 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
             responseVo.setCatelogName(categoryEntity.getName());
         }
         return responseVo;
+    }
+
+    @Transactional
+    @Override
+    public void updateBaseAttr(AttrVO attr) {
+        AttrEntity attrEntity = new AttrEntity();
+        BeanUtils.copyProperties(attr, attrEntity);
+        // 1.更新基本数据
+        this.updateById(attrEntity);
+        // 2.修改分组关联的关系
+        AttrAttrgroupRelationEntity relationEntity = new AttrAttrgroupRelationEntity();
+        relationEntity.setAttrId(attr.getAttrId());
+        relationEntity.setAttrGroupId(attr.getAttrGroupId());
+//      //判断是否存在对应的数据
+        Integer count = attrAttrgroupRelationDao.selectCount(
+                new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
+        if (count > 0) {
+            // 说明有记录，直接更新
+            attrAttrgroupRelationDao.update(relationEntity,
+                    new UpdateWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
+        } else {
+            // 说明没有记录，直接插入
+            attrAttrgroupRelationDao.insert(relationEntity);
+
+        }
+
     }
 
 }

@@ -12,10 +12,13 @@ import com.msb.mall.product.dao.AttrGroupDao;
 import com.msb.mall.product.entity.AttrAttrgroupRelationEntity;
 import com.msb.mall.product.entity.AttrEntity;
 import com.msb.mall.product.entity.AttrGroupEntity;
+import com.msb.mall.product.entity.CategoryEntity;
 import com.msb.mall.product.service.AttrAttrgroupRelationService;
 import com.msb.mall.product.service.AttrGroupService;
 import com.msb.mall.product.service.AttrService;
+import com.msb.mall.product.service.CategoryService;
 import com.msb.mall.product.vo.AttrGroupRelationVO;
+import com.msb.mall.product.vo.AttrResponseVo;
 import com.msb.mall.product.vo.AttrVO;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -40,6 +43,8 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
     private AttrGroupService attrGroupService;
     @Autowired
     private AttrGroupDao attrGroupDao;
+    @Autowired
+    private CategoryService categoryService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -137,7 +142,32 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
         //3. 分页查询
         IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params), wrapper);
-        return new PageUtils(page);
+
+        PageUtils pageUtils = new PageUtils(page);
+        //4.关联的我们需要查询出类别名称和属性组的名称
+        List<AttrEntity> records = page.getRecords();
+        List<AttrResponseVo> list = records.stream().map(attrEntity -> {
+            AttrResponseVo responseVo = new AttrResponseVo();
+            BeanUtils.copyProperties(attrEntity, responseVo);
+            // 查询每一条结果对应的 类别名称和属性组的名称
+            CategoryEntity categoryEntity = categoryService.getById(attrEntity.getCatelogId());
+            if (categoryEntity != null) {
+                responseVo.setCatelogName(categoryEntity.getName());
+            }
+            // 设置属性组的名称
+            AttrAttrgroupRelationEntity attrAttrgroupRelationEntity
+                    = attrAttrgroupRelationDao.selectOne(new QueryWrapper<AttrAttrgroupRelationEntity>()
+                    .eq("attr_id", attrEntity.getAttrId()));
+            if (attrAttrgroupRelationEntity != null && attrAttrgroupRelationEntity.getAttrGroupId() != null) {
+                // 获取到属性组的ID，然后根据属性组的ID我们来查询属性组的名称
+                AttrGroupEntity attrGroupEntity
+                        = attrGroupService.getById(attrAttrgroupRelationEntity.getAttrGroupId());
+                responseVo.setGroupName(attrGroupEntity.getAttrGroupName());
+            }
+            return responseVo;
+        }).collect(Collectors.toList());
+        pageUtils.setList(list);
+        return pageUtils;
     }
 
     @Transactional

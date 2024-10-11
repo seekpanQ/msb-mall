@@ -128,8 +128,9 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
     }
 
     @Override
-    public PageUtils queryBasePage(Map<String, Object> params, Long catelogId) {
+    public PageUtils queryBasePage(Map<String, Object> params, Long catelogId, String attrType) {
         QueryWrapper<AttrEntity> wrapper = new QueryWrapper<>();
+        wrapper.eq("attr_type", "base".equalsIgnoreCase(attrType) ? 1 : 0);
         //1.根据类别编号查询
         if (catelogId != 0) {
             wrapper.eq("catelog_id", catelogId);

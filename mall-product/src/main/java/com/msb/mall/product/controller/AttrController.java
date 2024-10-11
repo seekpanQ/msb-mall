@@ -2,7 +2,6 @@ package com.msb.mall.product.controller;
 
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
-import com.msb.mall.product.entity.AttrEntity;
 import com.msb.mall.product.service.AttrService;
 import com.msb.mall.product.vo.AttrResponseVo;
 import com.msb.mall.product.vo.AttrVO;
@@ -37,10 +36,11 @@ public class AttrController {
         return R.ok().put("page", page);
     }
 
-    @GetMapping("/base/list/{catelogId}")
+    @GetMapping("/{attrType}/list/{catelogId}")
     public R baseList(@RequestParam Map<String, Object> params,
-                      @PathVariable("catelogId") Long catelogId) {
-        PageUtils page = attrService.queryBasePage(params, catelogId);
+                      @PathVariable("catelogId") Long catelogId,
+                      @PathVariable("attrType") String attrType) {
+        PageUtils page = attrService.queryBasePage(params, catelogId, attrType);
 
         return R.ok().put("page", page);
     }

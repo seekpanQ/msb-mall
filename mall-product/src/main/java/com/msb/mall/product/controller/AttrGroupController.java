@@ -9,6 +9,7 @@ import com.msb.mall.product.service.AttrGroupService;
 import com.msb.mall.product.service.AttrService;
 import com.msb.mall.product.service.CategoryService;
 import com.msb.mall.product.vo.AttrGroupRelationVO;
+import com.msb.mall.product.vo.AttrGroupWithAttrsVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,6 +47,14 @@ public class AttrGroupController {
 //        PageUtils page = attrGroupService.queryPage(params);
         PageUtils page = attrGroupService.queryPage(params, catelogId);
         return R.ok().put("page", page);
+    }
+
+    @RequestMapping("/{catelogId}/withattr")
+    public R getAttrgroupWithAttrs(@PathVariable("catelogId") Long catelogId) {
+        //根据三级分类编号获取对应属性组和属性组的基本信息
+        List<AttrGroupWithAttrsVo> list
+                = attrGroupService.getAttrgroupWithAttrsByCatelogId(catelogId);
+        return R.ok().put("data", list);
     }
 
 

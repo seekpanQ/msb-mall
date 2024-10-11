@@ -6,16 +6,26 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.Query;
 import com.msb.mall.product.dao.AttrGroupDao;
+import com.msb.mall.product.entity.AttrEntity;
 import com.msb.mall.product.entity.AttrGroupEntity;
 import com.msb.mall.product.service.AttrGroupService;
+import com.msb.mall.product.service.AttrService;
+import com.msb.mall.product.vo.AttrGroupWithAttrsVo;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service("attrGroupService")
 public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEntity> implements AttrGroupService {
+
+    @Autowired
+    private AttrService attrService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -59,6 +69,30 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
                 new Query<AttrGroupEntity>().getPage(params), wrapper
         );
         return new PageUtils(page);
+    }
+
+
+    /**
+     * 1.根据三级分类的编号查询出对应的所有的属性组
+     * 2.根据属性组查询到对应的属性信息
+     *
+     * @param catelogId
+     * @return
+     */
+    @Override
+    public List<AttrGroupWithAttrsVo> getAttrgroupWithAttrsByCatelogId(Long catelogId) {
+        //1.//根据三级分类编号获取对应属性组
+        List<AttrGroupEntity> attrGroupEntities
+                = this.list(new QueryWrapper<AttrGroupEntity>().eq("catelog_id", catelogId));
+        List<AttrGroupWithAttrsVo> list = attrGroupEntities.stream().map(group -> {
+            AttrGroupWithAttrsVo vo = new AttrGroupWithAttrsVo();
+            BeanUtils.copyProperties(group, vo);
+            //根据属性组找到所有的属性信息
+            List<AttrEntity> attrEntities = attrService.getRelationAttr(group.getAttrGroupId());
+            vo.setAttrs(attrEntities);
+            return vo;
+        }).collect(Collectors.toList());
+        return list;
     }
 
 }

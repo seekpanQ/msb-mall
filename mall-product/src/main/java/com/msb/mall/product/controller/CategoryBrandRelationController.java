@@ -45,6 +45,13 @@ public class CategoryBrandRelationController {
         return R.ok().put("data", list);
     }
 
+    @RequestMapping("/brands/list")
+    public R categoryBrandRelation(@RequestParam(value = "catId", required = true, defaultValue = "0")
+                                   Long catId) {
+        List<CategoryBrandRelationEntity> list = categoryBrandRelationService.categoryBrandRelation(catId);
+        return R.ok().put("data", list);
+    }
+
 
     /**
      * 信息

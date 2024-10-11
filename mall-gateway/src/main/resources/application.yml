@@ -8,14 +8,6 @@ spring:
         server-addr: 192.168.91.131:8848
     gateway:
       routes:
-        - id: route1
-          uri: http://www.baidu.com
-          predicates:
-            - Query=url,baidu
-        - id: route2
-          uri: http://jd.com
-          predicates:
-            - Query=url,jd
         - id: product_route
           uri: lb://mall-product
           predicates:
@@ -28,6 +20,12 @@ spring:
             - Path=/app/third/**
           filters:
             - RewritePath=/app/third/(?<segment>/?.*), /$\{segment}
+        - id: member_route
+          uri: lb://mall-member
+          predicates:
+            - Path=/app/member/**
+          filters:
+            - RewritePath=/app/(?<segment>/?.*), /$\{segment}
         - id: app_route
           uri: lb://renren-fast
           predicates:

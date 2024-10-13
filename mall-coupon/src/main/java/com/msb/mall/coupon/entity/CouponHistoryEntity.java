@@ -2,17 +2,17 @@ package com.msb.mall.coupon.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 优惠券领取历史记录
  * 
  * @author Lison
  * @email lixin_qiu@163.com
- * @date 2024-09-20 16:15:02
+ * @date 2024-10-13 23:32:19
  */
 @Data
 @TableName("sms_coupon_history")

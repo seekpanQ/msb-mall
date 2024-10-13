@@ -2,18 +2,18 @@ package com.msb.mall.coupon.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-
-import java.math.BigDecimal;
-import java.io.Serializable;
-import java.util.Date;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 优惠券信息
  * 
  * @author Lison
  * @email lixin_qiu@163.com
- * @date 2024-09-20 16:15:02
+ * @date 2024-10-13 23:32:19
  */
 @Data
 @TableName("sms_coupon")
@@ -26,7 +26,7 @@ public class CouponEntity implements Serializable {
 	@TableId
 	private Long id;
 	/**
-	 * 优惠?砝嘈蚚0->全场赠券；1->会员赠券；2->购物赠券；3->注册赠券]
+	 * 优惠卷类型[0->全场赠券；1->会员赠券；2->购物赠券；3->注册赠券]
 	 */
 	private Integer couponType;
 	/**

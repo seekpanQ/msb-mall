@@ -1,7 +1,7 @@
 package com.msb.mall.coupon.dao;
 
-import com.msb.mall.coupon.entity.CouponSpuRelationEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.msb.mall.coupon.entity.CouponSpuRelationEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 
  * @author Lison
  * @email lixin_qiu@163.com
- * @date 2024-09-20 16:15:02
+ * @date 2024-10-13 23:32:19
  */
 @Mapper
 public interface CouponSpuRelationDao extends BaseMapper<CouponSpuRelationEntity> {

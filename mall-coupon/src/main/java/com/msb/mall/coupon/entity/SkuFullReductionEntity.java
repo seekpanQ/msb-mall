@@ -10,9 +10,9 @@ import java.math.BigDecimal;
 /**
  * 商品满减信息
  * 
- * @author dpb
- * @email dengpbs@163.com
- * @date 2021-11-24 19:50:53
+ * @author Lison
+ * @email lixin_qiu@163.com
+ * @date 2024-10-13 23:32:19
  */
 @Data
 @TableName("sms_sku_full_reduction")

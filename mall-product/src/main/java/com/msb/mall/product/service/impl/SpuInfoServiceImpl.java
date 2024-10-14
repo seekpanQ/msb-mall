@@ -3,10 +3,15 @@ package com.msb.mall.product.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.msb.common.dto.MemberPrice;
+import com.msb.common.dto.SkuReductionDTO;
+import com.msb.common.dto.SpuBoundsDTO;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.Query;
+import com.msb.common.utils.R;
 import com.msb.mall.product.dao.SpuInfoDao;
 import com.msb.mall.product.entity.*;
+import com.msb.mall.product.feign.CouponFeignService;
 import com.msb.mall.product.service.*;
 import com.msb.mall.product.vo.*;
 import org.springframework.beans.BeanUtils;
@@ -36,6 +41,8 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     private SkuImagesService skuImagesService;
     @Autowired
     private SkuSaleAttrValueService skuSaleAttrValueService;
+    @Autowired
+    private CouponFeignService couponFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -126,7 +133,22 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 skuImagesService.saveBatch(skuImagesEntities);
 
                 // 5.3 保存满减信息，折扣，会员价 mall_sms: sms_sku_ladder sms_full_reduction sms_member_price
-
+                SkuReductionDTO dto = new SkuReductionDTO();
+                BeanUtils.copyProperties(item, dto);
+                dto.setSkuId(skuInfoEntity.getSkuId());
+                // 设置会员价
+                if (item.getMemberPrice() != null && item.getMemberPrice().size() > 0) {
+                    List<com.msb.common.dto.MemberPrice> list = item.getMemberPrice().stream().map(memberPrice -> {
+                        com.msb.common.dto.MemberPrice mDto = new MemberPrice();
+                        BeanUtils.copyProperties(memberPrice, mDto);
+                        return mDto;
+                    }).collect(Collectors.toList());
+                    dto.setMemberPrice(list);
+                }
+                R r = couponFeignService.saveFullReductionInfo(dto);
+                if (r.getCode() != 0) {
+                    log.error("调用Coupon服务处理满减、折扣，会员价操作失败...");
+                }
                 // 5.4 sku的销售属性信息 pms_sku_sale_attr_value
                 List<Attr> attrs = item.getAttr();
                 List<SkuSaleAttrValueEntity> saleAttrValueEntities = attrs.stream().map(sale -> {
@@ -140,6 +162,14 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         }
 
         // 6.保存spu的积分信息：mall-sms: sms_spu_bounds
+        Bounds bounds = spuInfoVO.getBounds();
+        SpuBoundsDTO spuBoundsDTO = new SpuBoundsDTO();
+        BeanUtils.copyProperties(bounds, spuBoundsDTO);
+        spuBoundsDTO.setSpuId(spuInfoEntity.getId());
+        R r = couponFeignService.saveSpuBounds(spuBoundsDTO);
+        if (r.getCode() != 0) {
+            log.error("调用Coupon服务存储积分信息操作失败");
+        }
 
     }
 

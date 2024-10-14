@@ -2,6 +2,7 @@ package com.msb.mall.product.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.msb.common.dto.MemberPrice;
 import com.msb.common.dto.SkuReductionDTO;
@@ -44,6 +45,10 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     private SkuSaleAttrValueService skuSaleAttrValueService;
     @Autowired
     private CouponFeignService couponFeignService;
+    @Autowired
+    private CategoryService categoryService;
+    @Autowired
+    private BrandService brandService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -217,7 +222,23 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 new Query<SpuInfoEntity>().getPage(params),
                 wrapper
         );
-        return new PageUtils(page);
+        // 根据查询到的分页信息，再查询出对应的类别名称和品牌名称
+        List<SpuInfoVO> list = page.getRecords().stream().map(spu -> {
+            Long catalogId1 = spu.getCatalogId();
+            Long brandId1 = spu.getBrandId();
+            CategoryEntity categoryEntity = categoryService.getById(catalogId1);
+            BrandEntity brandEntity = brandService.getById(brandId1);
+            SpuInfoVO vo = new SpuInfoVO();
+            BeanUtils.copyProperties(spu, vo);
+            vo.setCatalogName(categoryEntity.getName());
+            vo.setBrandName(brandEntity.getName());
+            return vo;
+        }).collect(Collectors.toList());
+        IPage<SpuInfoVO> iPage = new Page<SpuInfoVO>();
+        iPage.setRecords(list);
+        iPage.setPages(page.getPages());
+        iPage.setCurrent(page.getCurrent());
+        return new PageUtils(iPage);
     }
 
 }

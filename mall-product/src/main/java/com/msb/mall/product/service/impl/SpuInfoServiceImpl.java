@@ -14,6 +14,7 @@ import com.msb.mall.product.entity.*;
 import com.msb.mall.product.feign.CouponFeignService;
 import com.msb.mall.product.service.*;
 import com.msb.mall.product.vo.*;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -171,6 +172,52 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
             log.error("调用Coupon服务存储积分信息操作失败");
         }
 
+    }
+
+    /**
+     * SPU信息检索
+     * 分页查询
+     * 分类 品牌 状态 关键字查询
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    public PageUtils queryPageByCondition(Map<String, Object> params) {
+        QueryWrapper<SpuInfoEntity> wrapper = new QueryWrapper<>();
+        // 设置对应的检索条件
+        // 1. 关键字查询
+        String key = (String) params.get("key");
+        if (StringUtils.isNotEmpty(key)) {
+            // 需要添加关键字查询
+            wrapper.and((w) -> {
+                w.eq("id", key)
+                        .or().like("spu_name", key)
+                        .or().like("spu_description", key);
+
+            });
+        }
+        // status
+        String status = (String) params.get("status");
+        if (!StringUtils.isEmpty(status)) {
+            wrapper.eq("publish_status", status);
+        }
+        // catalogId
+        String catalogId = (String) params.get("catelogId");
+        if (!StringUtils.isEmpty(catalogId) && !"0".equalsIgnoreCase(catalogId)) {
+            wrapper.eq("catalog_id", catalogId);
+        }
+        // brandId
+        String brandId = (String) params.get("brandId");
+        if (!StringUtils.isEmpty(brandId) && !"0".equalsIgnoreCase(brandId)) {
+            wrapper.eq("brand_id", brandId);
+        }
+
+        IPage<SpuInfoEntity> page = this.page(
+                new Query<SpuInfoEntity>().getPage(params),
+                wrapper
+        );
+        return new PageUtils(page);
     }
 
 }

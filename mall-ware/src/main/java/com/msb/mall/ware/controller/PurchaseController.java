@@ -4,6 +4,7 @@ import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
 import com.msb.mall.ware.entity.PurchaseEntity;
 import com.msb.mall.ware.service.PurchaseService;
+import com.msb.mall.ware.vo.MergeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +41,21 @@ public class PurchaseController {
         PageUtils page = purchaseService.queryPageUnreceive(params);
 
         return R.ok().put("page", page);
+    }
+
+    /**
+     * 采购需求合并
+     *
+     * @param mergeVO
+     * @return
+     */
+    @RequestMapping("/merge")
+    public R merge(@RequestBody MergeVO mergeVO) {
+        Integer flag = purchaseService.merge(mergeVO);
+        if (flag == -1) {
+            return R.error("合并失败...该采购单不能被合并!");
+        }
+        return R.ok();
     }
 
 

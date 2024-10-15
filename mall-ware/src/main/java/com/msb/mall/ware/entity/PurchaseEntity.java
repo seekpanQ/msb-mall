@@ -2,18 +2,18 @@ package com.msb.mall.ware.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-
-import java.math.BigDecimal;
-import java.io.Serializable;
-import java.util.Date;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 采购信息
  * 
  * @author Lison
  * @email lixin_qiu@163.com
- * @date 2024-09-20 17:05:53
+ * @date 2024-10-15 11:02:55
  */
 @Data
 @TableName("wms_purchase")

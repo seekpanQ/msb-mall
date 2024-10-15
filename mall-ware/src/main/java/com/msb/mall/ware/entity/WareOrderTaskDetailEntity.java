@@ -7,15 +7,15 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 仓库信息
+ * 库存工作单
  * 
  * @author Lison
  * @email lixin_qiu@163.com
  * @date 2024-10-15 11:02:55
  */
 @Data
-@TableName("wms_ware_info")
-public class WareInfoEntity implements Serializable {
+@TableName("wms_ware_order_task_detail")
+public class WareOrderTaskDetailEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -24,16 +24,20 @@ public class WareInfoEntity implements Serializable {
 	@TableId
 	private Long id;
 	/**
-	 * 仓库名
+	 * sku_id
 	 */
-	private String name;
+	private Long skuId;
 	/**
-	 * 仓库地址
+	 * sku_name
 	 */
-	private String address;
+	private String skuName;
 	/**
-	 * 区域编码
+	 * 购买个数
 	 */
-	private String areacode;
+	private Integer skuNum;
+	/**
+	 * 工作单id
+	 */
+	private Long taskId;
 
 }

@@ -5,48 +5,43 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 
 /**
- * 
+ * 商品库存
  * 
  * @author Lison
  * @email lixin_qiu@163.com
  * @date 2024-10-15 11:02:55
  */
 @Data
-@TableName("wms_purchase_detail")
-public class PurchaseDetailEntity implements Serializable {
+@TableName("wms_ware_sku")
+public class WareSkuEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * 
+	 * id
 	 */
 	@TableId
 	private Long id;
 	/**
-	 * 采购单id
-	 */
-	private Long purchaseId;
-	/**
-	 * 采购商品id
+	 * sku_id
 	 */
 	private Long skuId;
-	/**
-	 * 采购数量
-	 */
-	private Integer skuNum;
-	/**
-	 * 采购金额
-	 */
-	private BigDecimal skuPrice;
 	/**
 	 * 仓库id
 	 */
 	private Long wareId;
 	/**
-	 * 状态[0新建，1已分配，2正在采购，3已完成，4采购失败]
+	 * 库存数
 	 */
-	private Integer status;
+	private Integer stock;
+	/**
+	 * sku_name
+	 */
+	private String skuName;
+	/**
+	 * 锁定库存
+	 */
+	private Integer stockLocked;
 
 }

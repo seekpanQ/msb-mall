@@ -39,5 +39,24 @@ public class PurchaseServiceImpl extends ServiceImpl<PurchaseDao, PurchaseEntity
         return new PageUtils(page);
     }
 
+    /**
+     * 查询采购单的状态为 新建 或者 已分配 的采购单信息
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    public PageUtils queryPageUnreceive(Map<String, Object> params) {
+        QueryWrapper<PurchaseEntity> wrapper = new QueryWrapper<>();
+        //添加查询条件
+        wrapper.eq("status", 0).or().eq("status", 1);
+        IPage<PurchaseEntity> page = this.page(
+                new Query<PurchaseEntity>().getPage(params),
+                wrapper
+        );
+
+        return new PageUtils(page);
+    }
+
 
 }

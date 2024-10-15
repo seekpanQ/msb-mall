@@ -128,5 +128,52 @@ public class PurchaseServiceImpl extends ServiceImpl<PurchaseDao, PurchaseEntity
         return 1;
     }
 
+    /**
+     * 领取采购单
+     *
+     * @param ids
+     */
+    @Transactional
+    @Override
+    public void received(List<Long> ids) {
+        // 1.领取的采购单的状态只能是新建或者已分配的采购单 其他的是不能领取的
+
+        List<PurchaseEntity> list
+                = ids.stream().map(id -> {
+            return this.getById(id);
+        }).filter(item -> {
+            if (item.getStatus() == WareConstant.PurchaseStatusEnum.CREATED.getCode()
+                    || item.getStatus() == WareConstant.PurchaseStatusEnum.ASSIGED.getCode()) {
+                return true;
+            }
+            return false;
+        }).map(item -> {
+            // 设置更新时间
+            item.setUpdateTime(new Date());
+            // 更新采购单的状态为 已领取
+            item.setStatus(WareConstant.PurchaseStatusEnum.RECEIVE.getCode());
+            return item;
+        }).collect(Collectors.toList());
+
+        // 2.更新采购单的状态为 已领取
+        this.updateBatchById(list);
+
+        // 3.更新采购项的状态为 正在采购
+        for (Long id : ids) {
+            // 根据采购单id 找到对应的采购项对象
+            List<PurchaseDetailEntity> detailEntities
+                    = purchaseDetailService.listDetailByPurchaseId(id);
+
+            List<PurchaseDetailEntity> collect = detailEntities.stream().map(item -> {
+                PurchaseDetailEntity entity = new PurchaseDetailEntity();
+                entity.setId(item.getId());
+                entity.setStatus(WareConstant.PurchaseDetailStatusEnum.BUYING.getCode());
+                return entity;
+            }).collect(Collectors.toList());
+            // 批量更新采购项
+            purchaseDetailService.updateBatchById(collect);
+        }
+
+    }
 
 }

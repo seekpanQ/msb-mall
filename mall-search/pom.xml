@@ -15,7 +15,7 @@
     <description>检索服务</description>
     <properties>
         <java.version>1.8</java.version>
-<!--        <elasticsearch.version>7.4.2</elasticsearch.version>-->
+        <elasticsearch.version>7.4.2</elasticsearch.version>
         <spring-cloud.version>2020.0.1</spring-cloud.version>
     </properties>
     <dependencies>
@@ -34,6 +34,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>${elasticsearch.version}</version>
         </dependency>
 
     </dependencies>

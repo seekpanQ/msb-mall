@@ -4,17 +4,23 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.msb.common.constant.ProductConstant;
 import com.msb.common.dto.MemberPrice;
+import com.msb.common.dto.SkuHasStockDto;
 import com.msb.common.dto.SkuReductionDTO;
 import com.msb.common.dto.SpuBoundsDTO;
+import com.msb.common.dto.es.SkuESModel;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.Query;
 import com.msb.common.utils.R;
 import com.msb.mall.product.dao.SpuInfoDao;
 import com.msb.mall.product.entity.*;
 import com.msb.mall.product.feign.CouponFeignService;
+import com.msb.mall.product.feign.SearchFeginService;
+import com.msb.mall.product.feign.WareSkuFeginService;
 import com.msb.mall.product.service.*;
 import com.msb.mall.product.vo.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +34,7 @@ import java.util.stream.Collectors;
 
 
 @Service("spuInfoService")
+@Slf4j
 public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> implements SpuInfoService {
     @Autowired
     private SpuInfoDescService spuInfoDescService;
@@ -49,6 +56,10 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     private CategoryService categoryService;
     @Autowired
     private BrandService brandService;
+    @Autowired
+    private WareSkuFeginService wareSkuFeginService;
+    @Autowired
+    private SearchFeginService searchFeginService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -239,6 +250,120 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         iPage.setPages(page.getPages());
         iPage.setCurrent(page.getCurrent());
         return new PageUtils(iPage);
+    }
+
+    /**
+     * 实现商品上架--》商品相关数据存储到ElasticSearch中
+     * 1.根据SpuID查询出相关的信息
+     * 封装到对应的对象中
+     * 2.将封装的数据存储到ElasticSearch中--》调用mall-search的远程接口
+     * 3.更新SpuID对应的状态--》上架
+     *
+     * @param spuId
+     */
+    @Override
+    public void up(Long spuId) {
+        // 1.根据spuId查询相关的信息 封装到SkuESModel对象中
+
+        // 根据spuID找到对应的SKU信息
+        List<SkuInfoEntity> skus = skuInfoService.getSkusBySpuId(spuId);
+
+        // 对应的规格参数  根据spuId来查询规格参数信息
+        List<SkuESModel.Attrs> attrsModel = getAttrsModel(spuId);
+        // 需要根据所有的skuId获取对应的库存信息---》远程调用
+        List<Long> skuIds = skus.stream().map(item -> item.getSkuId()).collect(Collectors.toList());
+        Map<Long, Boolean> skusHasStockMap = getSkusHasStock(skuIds);
+        // 2.远程调用mall-search的服务，将SukESModel中的数据存储到ES中
+
+        List<SkuESModel> skuESModels = skus.stream().map(item -> {
+            SkuESModel model = new SkuESModel();
+            // 先实现属性的复制
+            BeanUtils.copyProperties(item, model);
+            model.setSubTitle(item.getSkuTitle());
+            model.setSkuPrice(item.getPrice());
+
+            // hasStock 是否有库存 --》 库存系统查询  一次远程调用获取所有的skuId对应的库存信息
+            if (skusHasStockMap == null) {
+                model.setHasStock(false);
+            } else {
+                model.setHasStock(skusHasStockMap.get(item.getSkuId()));
+            }
+            // hotScore 热度分 --> 默认给0即可
+            model.setHotScore(0L);
+            // 品牌和类型的名称
+            BrandEntity brand = brandService.getById(item.getBrandId());
+            CategoryEntity category = categoryService.getById(item.getCatalogId());
+            model.setBrandName(brand.getName());
+            model.setBrandImg(brand.getLogo());
+            model.setCatalogName(category.getName());
+            // 需要存储的规格数据
+            model.setAttrs(attrsModel);
+            return model;
+        }).collect(Collectors.toList());
+        // 将SkuESModel中的数据存储到ES中
+        R r = searchFeginService.productStatusUp(skuESModels);
+        // 3.更新SPUID对应的状态
+        // 根据对应的状态更新商品的状态
+        log.info("----->ES操作完成：{}", r.getCode());
+        System.out.println("-------------->" + r.getCode());
+        if (r.getCode() == 0) {
+            // 远程调用成功  更新商品的状态为 上架
+            baseMapper.updateSpuStatusUp(spuId, ProductConstant.StatusEnum.SPU_UP.getCode());
+        } else {
+            // 远程调用失败
+        }
+
+
+    }
+
+    /**
+     * 根据skuIds获取对应的库存状态
+     *
+     * @param skuIds
+     * @return
+     */
+    private Map<Long, Boolean> getSkusHasStock(List<Long> skuIds) {
+        List<SkuHasStockDto> skusHasStock = null;
+        if (skuIds == null && skuIds.size() == 0) {
+            return null;
+        }
+        // 调用远程接口获取对应的信息
+        try {
+            skusHasStock = wareSkuFeginService.getSkusHasStock(skuIds);
+            Map<Long, Boolean> map = skusHasStock.stream()
+                    .collect(Collectors.toMap(SkuHasStockDto::getSkuId, item -> item.getHasStock()));
+            return map;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 根据spuId获取对应的规格参数
+     *
+     * @param spuId
+     * @return
+     */
+    private List<SkuESModel.Attrs> getAttrsModel(Long spuId) {
+        // 1. product_attr_value 存储了对应的spu相关的所有的规格参数
+        List<ProductAttrValueEntity> baseAttrs = productAttrValueService.baseAttrsForSpuId(spuId);
+        // 2. attr  search_type 决定该属性是否支持检索
+        List<Long> attrIds
+                = baseAttrs.stream().map(item -> item.getAttrId()
+        ).collect(Collectors.toList());
+        // 查询出所有的可以检索的对应的规格参数编号
+        List<Long> searchAttrIds = attrService.selectSearchAttrIds(attrIds);
+        // baseAttrs中根据可以检索的数据过滤
+        List<SkuESModel.Attrs> attrsModel = baseAttrs.stream().filter(item -> {
+            return searchAttrIds.contains(item.getAttrId());
+        }).map(item -> {
+            SkuESModel.Attrs attr = new SkuESModel.Attrs();
+            BeanUtils.copyProperties(item, attr);
+            return attr;
+        }).collect(Collectors.toList());
+
+        return attrsModel;
     }
 
 }

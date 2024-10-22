@@ -3,6 +3,7 @@ package com.msb.mall.ware.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.msb.common.dto.SkuHasStockDto;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.Query;
 import com.msb.common.utils.R;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service("wareSkuService")
@@ -77,6 +79,21 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             // 如果有就更新库存
             wareSkuDao.addStock(skuId, wareId, skuNum);
         }
+
+    }
+
+    @Override
+    public List<SkuHasStockDto> getSkusHasStock(List<Long> skuIds) {
+        List<SkuHasStockDto> list = skuIds.stream().map(
+                skuId -> {
+                    Long count = baseMapper.getSkuStock(skuId);
+                    SkuHasStockDto dto = new SkuHasStockDto();
+                    dto.setSkuId(skuId);
+                    dto.setHasStock(count > 0);
+                    return dto;
+                }
+        ).collect(Collectors.toList());
+        return list;
 
     }
 

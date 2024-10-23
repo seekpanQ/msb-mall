@@ -13,6 +13,8 @@ spring:
     name: mall-product
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
+  thymeleaf:
+    cache: false # 关闭Thymeleaf的缓存
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   global-config:

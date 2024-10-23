@@ -120,6 +120,17 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     /**
+     * 查询出所有的商品大类(一级分类)
+     *
+     * @return
+     */
+    @Override
+    public List<CategoryEntity> getLeve1Category() {
+        List<CategoryEntity> list = baseMapper.queryLeve1Category();
+        return list;
+    }
+
+    /**
      * 递归实现找出分类层级
      *
      * @param catelogId

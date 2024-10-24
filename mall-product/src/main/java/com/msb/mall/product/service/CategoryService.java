@@ -3,6 +3,7 @@ package com.msb.mall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.msb.common.utils.PageUtils;
 import com.msb.mall.product.entity.CategoryEntity;
+import com.msb.mall.product.vo.Catalog2VO;
 
 import java.util.List;
 import java.util.Map;
@@ -27,5 +28,7 @@ public interface CategoryService extends IService<CategoryEntity> {
     void updateDetail(CategoryEntity category);
 
     List<CategoryEntity> getLeve1Category();
+
+    Map<String, List<Catalog2VO>> getCatelog2JSON();
 }
 

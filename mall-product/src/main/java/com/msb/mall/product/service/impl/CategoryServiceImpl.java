@@ -9,6 +9,7 @@ import com.msb.mall.product.dao.CategoryDao;
 import com.msb.mall.product.entity.CategoryEntity;
 import com.msb.mall.product.service.CategoryBrandRelationService;
 import com.msb.mall.product.service.CategoryService;
+import com.msb.mall.product.vo.Catalog2VO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -128,6 +129,50 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     public List<CategoryEntity> getLeve1Category() {
         List<CategoryEntity> list = baseMapper.queryLeve1Category();
         return list;
+    }
+
+    /**
+     * 查询出所有的二级和三级分类的数据
+     * 并封装为Map<String, Catalog2VO>对象
+     *
+     * @return
+     */
+    @Override
+    public Map<String, List<Catalog2VO>> getCatelog2JSON() {
+        // 获取所有的一级分类的数据
+        List<CategoryEntity> leve1Category = this.getLeve1Category();
+        // 把一级分类的数据转换为Map容器 key就是一级分类的编号， value就是一级分类对应的二级分类的数据
+        Map<String, List<Catalog2VO>> map =
+                leve1Category.stream().collect(Collectors.toMap(key -> key.getCatId().toString(), value -> {
+                    // 根据一级分类的编号，查询出对应的二级分类的数据
+                    List<CategoryEntity> l2Catalogs = baseMapper.selectList(
+                            new QueryWrapper<CategoryEntity>().eq("parent_cid", value.getCatId()));
+                    List<Catalog2VO> Catalog2VOs = null;
+                    if (l2Catalogs != null) {
+                        // 需要把查询出来的二级分类的数据填充到对应的Catelog2VO中
+                        Catalog2VOs = l2Catalogs.stream().map(l2 -> {
+                            Catalog2VO catalog2VO = new Catalog2VO(l2.getParentCid().toString(),
+                                    null, l2.getCatId().toString(), l2.getName());
+                            // 根据二级分类的数据找到对应的三级分类的信息
+                            List<CategoryEntity> l3Catelogs =
+                                    baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", catalog2VO.getId()));
+                            if (l3Catelogs != null) {
+                                // 获取到的二级分类对应的三级分类的数据
+                                List<Catalog2VO.Catalog3VO> catalog3VOS = l3Catelogs.stream().map(l3 -> {
+                                    Catalog2VO.Catalog3VO catalog3VO = new Catalog2VO.Catalog3VO(
+                                            l3.getParentCid().toString(), l3.getCatId().toString(), l3.getName());
+                                    return catalog3VO;
+                                }).collect(Collectors.toList());
+                                // 三级分类关联二级分类
+                                catalog2VO.setCatalog3List(catalog3VOS);
+                            }
+                            return catalog2VO;
+                        }).collect(Collectors.toList());
+                    }
+
+                    return Catalog2VOs;
+                }));
+        return map;
     }
 
     /**

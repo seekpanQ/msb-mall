@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -156,13 +157,19 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     @Override
     public Map<String, List<Catalog2VO>> getCatelog2JSON() {
         // 从Redis中获取分类的信息
-        String catalogJSON = stringRedisTemplate.opsForValue().get("catalogJSON");
+        String key = "catalogJSON";
+        String catalogJSON = stringRedisTemplate.opsForValue().get(key);
         if (StringUtils.isEmpty(catalogJSON)) {
             // 缓存中没有数据，需要从数据库中查询
             Map<String, List<Catalog2VO>> catelog2JSONForDb = getCatelog2JSONForDb();
+            if (catelog2JSONForDb == null) {
+                //说明数据不存在，放入空值结果缓存，并设置过期时间，防止缓存穿透
+                stringRedisTemplate.opsForValue().set(key, "1", 5, TimeUnit.SECONDS);
+            }
             // 从数据库中查询到的数据，我们需要给缓存中也存储一份
+            //设置随机过期时间，防止缓存雪崩
             String json = JSON.toJSONString(catelog2JSONForDb);
-            stringRedisTemplate.opsForValue().set("catalogJSON", json);
+            stringRedisTemplate.opsForValue().set(key, json, new Random().nextInt(10) + 1, TimeUnit.HOURS);
             return catelog2JSONForDb;
         }
         // 表示缓存命中了数据，那么从缓存中获取信息，然后返回

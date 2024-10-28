@@ -14,7 +14,7 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
   thymeleaf:
-    cache: true # 打开Thymeleaf的缓存
+    cache: false # 打开Thymeleaf的缓存
   redis:
     host: 192.168.91.131
     port: 6379

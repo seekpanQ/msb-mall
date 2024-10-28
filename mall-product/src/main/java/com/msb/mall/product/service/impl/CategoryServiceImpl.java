@@ -1,5 +1,7 @@
 package com.msb.mall.product.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -10,7 +12,9 @@ import com.msb.mall.product.entity.CategoryEntity;
 import com.msb.mall.product.service.CategoryBrandRelationService;
 import com.msb.mall.product.service.CategoryService;
 import com.msb.mall.product.vo.Catalog2VO;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,8 +24,8 @@ import java.util.stream.Collectors;
 
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
-    //本地缓存
-    private Map<String, Map<String, List<Catalog2VO>>> cache = new HashMap<>();
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private CategoryBrandRelationService categoryBrandRelationService;
 
@@ -151,9 +155,24 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      */
     @Override
     public Map<String, List<Catalog2VO>> getCatelog2JSON() {
-        if (cache.containsKey("getCatelog2JSON")) {
-            return cache.get("getCatelog2JSON");
+        // 从Redis中获取分类的信息
+        String catalogJSON = stringRedisTemplate.opsForValue().get("catalogJSON");
+        if (StringUtils.isEmpty(catalogJSON)) {
+            // 缓存中没有数据，需要从数据库中查询
+            Map<String, List<Catalog2VO>> catelog2JSONForDb = getCatelog2JSONForDb();
+            // 从数据库中查询到的数据，我们需要给缓存中也存储一份
+            String json = JSON.toJSONString(catelog2JSONForDb);
+            stringRedisTemplate.opsForValue().set("catalogJSON", json);
+            return catelog2JSONForDb;
         }
+        // 表示缓存命中了数据，那么从缓存中获取信息，然后返回
+        Map<String, List<Catalog2VO>> stringListMap
+                = JSON.parseObject(catalogJSON, new TypeReference<Map<String, List<Catalog2VO>>>() {
+        });
+        return stringListMap;
+    }
+
+    public Map<String, List<Catalog2VO>> getCatelog2JSONForDb() {
         // 获取所有的分类数据
         List<CategoryEntity> list = baseMapper.selectList(new QueryWrapper<CategoryEntity>());
 
@@ -188,7 +207,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
                     return Catalog2VOs;
                 }));
-        cache.put("getCatelog2JSON", map);
         return map;
     }
 

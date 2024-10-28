@@ -161,6 +161,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         String catalogJSON = stringRedisTemplate.opsForValue().get(key);
         if (StringUtils.isEmpty(catalogJSON)) {
             // 缓存中没有数据，需要从数据库中查询
+            System.out.println("缓存没有命中.....");
             Map<String, List<Catalog2VO>> catelog2JSONForDb = getCatelog2JSONForDb();
             if (catelog2JSONForDb == null) {
                 //说明数据不存在，放入空值结果缓存，并设置过期时间，防止缓存穿透
@@ -172,6 +173,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             stringRedisTemplate.opsForValue().set(key, json, new Random().nextInt(10) + 1, TimeUnit.HOURS);
             return catelog2JSONForDb;
         }
+        System.out.println("缓存命中了....");
         // 表示缓存命中了数据，那么从缓存中获取信息，然后返回
         Map<String, List<Catalog2VO>> stringListMap
                 = JSON.parseObject(catalogJSON, new TypeReference<Map<String, List<Catalog2VO>>>() {
@@ -180,41 +182,64 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     public Map<String, List<Catalog2VO>> getCatelog2JSONForDb() {
-        // 获取所有的分类数据
-        List<CategoryEntity> list = baseMapper.selectList(new QueryWrapper<CategoryEntity>());
+        String keys = "catalogJSON";
+        synchronized (this) {//加同步锁，防止缓存击穿
+            String catalogJSON = stringRedisTemplate.opsForValue().get(keys);
+            if (StringUtils.isNotEmpty(catalogJSON)) {
+                // 说明缓存命中
+                // 表示缓存命中了数据，那么从缓存中获取信息，然后返回
+                Map<String, List<Catalog2VO>> stringListMap =
+                        JSON.parseObject(catalogJSON, new TypeReference<Map<String, List<Catalog2VO>>>() {
+                        });
+                return stringListMap;
+            }
+            System.out.println("-----------》查询数据库操作");
+            // 获取所有的分类数据
+            List<CategoryEntity> list = baseMapper.selectList(new QueryWrapper<CategoryEntity>());
 
-        // 获取所有的一级分类的数据
-        List<CategoryEntity> leve1Category = queryByParenCid(list, 0l);
-        // 把一级分类的数据转换为Map容器 key就是一级分类的编号， value就是一级分类对应的二级分类的数据
-        Map<String, List<Catalog2VO>> map =
-                leve1Category.stream().collect(Collectors.toMap(key -> key.getCatId().toString(), value -> {
-                    // 根据一级分类的编号，查询出对应的二级分类的数据
-                    List<CategoryEntity> l2Catalogs = this.queryByParenCid(list, value.getCatId());
-                    List<Catalog2VO> Catalog2VOs = null;
-                    if (l2Catalogs != null) {
-                        // 需要把查询出来的二级分类的数据填充到对应的Catelog2VO中
-                        Catalog2VOs = l2Catalogs.stream().map(l2 -> {
-                            Catalog2VO catalog2VO = new Catalog2VO(l2.getParentCid().toString(),
-                                    null, l2.getCatId().toString(), l2.getName());
-                            // 根据二级分类的数据找到对应的三级分类的信息
-                            List<CategoryEntity> l3Catelogs = this.queryByParenCid(list, l2.getCatId());
-                            if (l3Catelogs != null) {
-                                // 获取到的二级分类对应的三级分类的数据
-                                List<Catalog2VO.Catalog3VO> catalog3VOS = l3Catelogs.stream().map(l3 -> {
-                                    Catalog2VO.Catalog3VO catalog3VO = new Catalog2VO.Catalog3VO(
-                                            l3.getParentCid().toString(), l3.getCatId().toString(), l3.getName());
-                                    return catalog3VO;
-                                }).collect(Collectors.toList());
-                                // 三级分类关联二级分类
-                                catalog2VO.setCatalog3List(catalog3VOS);
-                            }
-                            return catalog2VO;
-                        }).collect(Collectors.toList());
-                    }
+            // 获取所有的一级分类的数据
+            List<CategoryEntity> leve1Category = queryByParenCid(list, 0l);
+            // 把一级分类的数据转换为Map容器 key就是一级分类的编号， value就是一级分类对应的二级分类的数据
+            Map<String, List<Catalog2VO>> map =
+                    leve1Category.stream().collect(Collectors.toMap(key -> key.getCatId().toString(), value -> {
+                        // 根据一级分类的编号，查询出对应的二级分类的数据
+                        List<CategoryEntity> l2Catalogs = this.queryByParenCid(list, value.getCatId());
+                        List<Catalog2VO> Catalog2VOs = null;
+                        if (l2Catalogs != null) {
+                            // 需要把查询出来的二级分类的数据填充到对应的Catelog2VO中
+                            Catalog2VOs = l2Catalogs.stream().map(l2 -> {
+                                Catalog2VO catalog2VO = new Catalog2VO(l2.getParentCid().toString(),
+                                        null, l2.getCatId().toString(), l2.getName());
+                                // 根据二级分类的数据找到对应的三级分类的信息
+                                List<CategoryEntity> l3Catelogs = this.queryByParenCid(list, l2.getCatId());
+                                if (l3Catelogs != null) {
+                                    // 获取到的二级分类对应的三级分类的数据
+                                    List<Catalog2VO.Catalog3VO> catalog3VOS = l3Catelogs.stream().map(l3 -> {
+                                        Catalog2VO.Catalog3VO catalog3VO = new Catalog2VO.Catalog3VO(
+                                                l3.getParentCid().toString(), l3.getCatId().toString(), l3.getName());
+                                        return catalog3VO;
+                                    }).collect(Collectors.toList());
+                                    // 三级分类关联二级分类
+                                    catalog2VO.setCatalog3List(catalog3VOS);
+                                }
+                                return catalog2VO;
+                            }).collect(Collectors.toList());
+                        }
 
-                    return Catalog2VOs;
-                }));
-        return map;
+                        return Catalog2VOs;
+                    }));
+            // 从数据库中获取到了对应的信息 然后在缓存中也存储一份信息
+            if (map == null) {
+                // 那就说明数据库中也不存在  防止缓存穿透
+                stringRedisTemplate.opsForValue().set(keys, "1", 5, TimeUnit.SECONDS);
+            } else {
+                // 从数据库中查询到的数据，我们需要给缓存中也存储一份
+                // 防止缓存雪崩
+                String json = JSON.toJSONString(map);
+                stringRedisTemplate.opsForValue().set("catalogJSON", json, new Random().nextInt(10) + 1, TimeUnit.MINUTES);
+            }
+            return map;
+        }
     }
 
     /**

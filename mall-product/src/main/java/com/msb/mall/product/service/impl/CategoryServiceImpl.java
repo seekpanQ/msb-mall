@@ -15,6 +15,7 @@ import com.msb.mall.product.vo.Catalog2VO;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -154,17 +155,18 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         // 加锁,在执行插入操作的同时设置了过期时间,保证原子性操作
         String uuid = UUID.randomUUID().toString();
         Boolean lock = stringRedisTemplate.opsForValue()
-                .setIfAbsent("lock", uuid, 30, TimeUnit.SECONDS);
+                .setIfAbsent("lock", uuid, 300, TimeUnit.SECONDS);
         if (lock) {
-            // 给对应的key设置过期时间
-//            stringRedisTemplate.expire("lock", 20, TimeUnit.SECONDS);
             // 加锁成功
-            Map<String, List<Catalog2VO>> data = getDataForDB(keys);
-            // 获取当前key对应的值
-            String val = stringRedisTemplate.opsForValue().get("lock");
-            if (uuid.equals(val)) {//说明这把锁是自己的
-                // 从数据库中获取数据成功后，我们应该要释放锁
-                stringRedisTemplate.delete("lock");
+            Map<String, List<Catalog2VO>> data = null;
+            try {
+                data = getDataForDB(keys);
+            } finally {
+                String srcipts = "if redis.call('get',KEYS[1])==ARGV[1] " +
+                        "then return redis.call('del',KEYS[1]) else return 0 end";
+                // 通过Redis的lua脚本实现 查询和删除操作的原子性
+                stringRedisTemplate.execute(new DefaultRedisScript<Long>(srcipts, Long.class),
+                        Arrays.asList("lock"), uuid);
             }
             return data;
         } else {

@@ -14,16 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
-
+    //本地缓存
+    private Map<String, Map<String, List<Catalog2VO>>> cache = new HashMap<>();
     @Autowired
     private CategoryBrandRelationService categoryBrandRelationService;
 
@@ -153,6 +151,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      */
     @Override
     public Map<String, List<Catalog2VO>> getCatelog2JSON() {
+        if (cache.containsKey("getCatelog2JSON")) {
+            return cache.get("getCatelog2JSON");
+        }
         // 获取所有的分类数据
         List<CategoryEntity> list = baseMapper.selectList(new QueryWrapper<CategoryEntity>());
 
@@ -187,6 +188,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
                     return Catalog2VOs;
                 }));
+        cache.put("getCatelog2JSON", map);
         return map;
     }
 

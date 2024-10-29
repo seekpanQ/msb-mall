@@ -3,6 +3,7 @@ package com.msb.mall.product.web;
 import com.msb.mall.product.entity.CategoryEntity;
 import com.msb.mall.product.service.CategoryService;
 import com.msb.mall.product.vo.Catalog2VO;
+import org.redisson.api.RCountDownLatch;
 import org.redisson.api.RLock;
 import org.redisson.api.RReadWriteLock;
 import org.redisson.api.RedissonClient;
@@ -11,6 +12,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -122,5 +124,26 @@ public class IndexController {
         }
 
         return s;
+    }
+
+    @ResponseBody
+    @GetMapping("/lockDoor")
+    public String lockDoor() {
+        RCountDownLatch door = redissonClient.getCountDownLatch("door");
+        door.trySetCount(5);
+        try {
+            door.await();// 等待数量降低到0
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return "关门熄灯...";
+    }
+
+    @ResponseBody
+    @GetMapping("/goHome/{id}")
+    public String getHome(@PathVariable Long id) {
+        RCountDownLatch door = redissonClient.getCountDownLatch("door");
+        door.countDown(); // 递减的操作
+        return id + "下班走人";
     }
 }

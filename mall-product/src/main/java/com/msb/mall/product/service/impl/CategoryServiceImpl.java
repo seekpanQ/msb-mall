@@ -131,9 +131,24 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     /**
      * 查询出所有的商品大类(一级分类)
+     * 在注解中我们可以指定对应的缓存的名称，起到一个分区的作用，一般按照业务来区分
      *
      * @return
+     * @Cacheable({"catagory","product"}) 代表当前的方法的返回结果是需要缓存的，
+     * 调用该方法的时候，如果缓存中有数据，那么该方法就不会执行，
+     * 如果缓存中没有数据，那么就执行该方法并且把查询的结果缓存起来
+     * 缓存处理
+     * 1.存储在Redis中的缓存数据的Key是默认生成的：缓存名称::SimpleKey[]
+     * 2.默认缓存的数据的过期时间是-1永久
+     * 3.缓存的数据，默认使用的是jdk的序列化机制
+     * 改进：
+     * 1.生成的缓存数据我们需要指定自定义的key： key属性来指定，可以直接字符串定义也可以通过SPEL表达式处理：#root.method.name
+     * 2.指定缓存数据的存活时间: spring.cache.redis.time-to-live 指定过期时间
+     * 3.把缓存的数据保存为JSON数据
+     * SpringCache的原理
+     * CacheAutoConfiguration--》根据指定的spring.cache.type=reids会导入 RedisCacheAutoConfiguration
      */
+    @Cacheable(value = {"catagory"}, key = "#root.method.name", sync = true)
     @Override
     public List<CategoryEntity> getLeve1Category() {
         List<CategoryEntity> list = baseMapper.queryLeve1Category();
@@ -154,27 +169,27 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return collect;
     }
 
-    @Cacheable(value = "catagory",key = "#root.methodName")
+    @Cacheable(value = "catagory", key = "#root.methodName")
     @Override
     public Map<String, List<Catalog2VO>> getCatelog2JSON() {
         // 获取所有的分类数据
         List<CategoryEntity> list = baseMapper.selectList(new QueryWrapper<CategoryEntity>());
         // 获取所有的一级分类的数据
-        List<CategoryEntity> leve1Category = this.queryByParenCid(list,0l);
+        List<CategoryEntity> leve1Category = this.queryByParenCid(list, 0l);
         // 把一级分类的数据转换为Map容器 key就是一级分类的编号， value就是一级分类对应的二级分类的数据
         Map<String, List<Catalog2VO>> map = leve1Category.stream().collect(Collectors.toMap(
                 key -> key.getCatId().toString()
                 , value -> {
                     // 根据一级分类的编号，查询出对应的二级分类的数据
-                    List<CategoryEntity> l2Catalogs = this.queryByParenCid(list,value.getCatId());
-                    List<Catalog2VO> Catalog2VOs =null;
-                    if(l2Catalogs != null){
+                    List<CategoryEntity> l2Catalogs = this.queryByParenCid(list, value.getCatId());
+                    List<Catalog2VO> Catalog2VOs = null;
+                    if (l2Catalogs != null) {
                         Catalog2VOs = l2Catalogs.stream().map(l2 -> {
                             // 需要把查询出来的二级分类的数据填充到对应的Catelog2VO中
                             Catalog2VO catalog2VO = new Catalog2VO(l2.getParentCid().toString(), null, l2.getCatId().toString(), l2.getName());
                             // 根据二级分类的数据找到对应的三级分类的信息
-                            List<CategoryEntity> l3Catelogs = this.queryByParenCid(list,l2.getCatId());
-                            if(l3Catelogs != null){
+                            List<CategoryEntity> l3Catelogs = this.queryByParenCid(list, l2.getCatId());
+                            if (l3Catelogs != null) {
                                 // 获取到的二级分类对应的三级分类的数据
                                 List<Catalog2VO.Catalog3VO> catalog3VOS = l3Catelogs.stream().map(l3 -> {
                                     Catalog2VO.Catalog3VO catalog3VO = new Catalog2VO.Catalog3VO(l3.getParentCid().toString(), l3.getCatId().toString(), l3.getName());

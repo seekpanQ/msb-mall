@@ -18,6 +18,13 @@ spring:
   redis:
     host: 192.168.91.131
     port: 6379
+  cache:
+    type: redis # SpringCache 缓存的类型是 Redis
+    redis:
+      time-to-live: 60000 # 指定缓存key的过期时间
+      use-key-prefix: true
+      cache-null-values: true # 是否缓存空值，防止缓存穿透
+
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   global-config:

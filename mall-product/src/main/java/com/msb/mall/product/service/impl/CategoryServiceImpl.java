@@ -13,6 +13,8 @@ import com.msb.mall.product.service.CategoryBrandRelationService;
 import com.msb.mall.product.service.CategoryService;
 import com.msb.mall.product.vo.Catalog2VO;
 import org.apache.commons.lang.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -30,6 +32,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private CategoryBrandRelationService categoryBrandRelationService;
+    @Autowired
+    private RedissonClient redissonClient;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -149,8 +153,48 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return collect;
     }
 
-
+    /**
+     * 查询出所有的二级和三级分类的数据
+     * 并封装为Map<String, Catalog2VO>对象
+     *
+     * @return
+     */
+    //@Override
     public Map<String, List<Catalog2VO>> getCatelog2JSON() {
+        String key = "catalogJSON";
+        // 从Redis中获取分类的信息
+        String catalogJSON = stringRedisTemplate.opsForValue().get(key);
+        if (StringUtils.isEmpty(catalogJSON)) {
+            System.out.println("缓存没有命中.....");
+            // 缓存中没有数据，需要从数据库中查询
+            Map<String, List<Catalog2VO>> catelog2JSONForDb = getCatelog2JSONDbWithRedisson();
+            return catelog2JSONForDb;
+        }
+        System.out.println("缓存命中了....");
+        // 表示缓存命中了数据，那么从缓存中获取信息，然后返回
+        Map<String, List<Catalog2VO>> stringListMap = JSON.parseObject(catalogJSON, new TypeReference<Map<String, List<Catalog2VO>>>() {
+        });
+        return stringListMap;
+    }
+
+    public Map<String, List<Catalog2VO>> getCatelog2JSONDbWithRedisson() {
+        String keys = "catalogJSON";
+        // 获取分布式锁对象  加锁的时候，这个锁的名称一定要注意
+        // 商品信息 product-lock  product-1001-lock product-1002-lock
+        RLock lock = redissonClient.getLock("catelog2JSON-lock");
+        Map<String, List<Catalog2VO>> data = null;
+        try {
+            lock.lock();
+            // 加锁成功
+            data = getDataForDB(keys);
+        } finally {
+            lock.unlock();
+        }
+        return data;
+    }
+
+
+    public Map<String, List<Catalog2VO>> getCatelog2JSONDbWithRedisLock() {
         String keys = "catalogJSON";
         // 加锁,在执行插入操作的同时设置了过期时间,保证原子性操作
         String uuid = UUID.randomUUID().toString();
@@ -158,6 +202,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                 .setIfAbsent("lock", uuid, 300, TimeUnit.SECONDS);
         if (lock) {
             // 加锁成功
+            System.out.println("获取分布式锁成功...");
             Map<String, List<Catalog2VO>> data = null;
             try {
                 data = getDataForDB(keys);
@@ -173,7 +218,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             // 加锁失败
             // 休眠+重试
 //             Thread.sleep(1000);
-            return getCatelog2JSON();
+            System.out.println("获取锁失败....");
+            return getCatelog2JSONDbWithRedisLock();
         }
     }
 
@@ -244,37 +290,13 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     /**
+     * 从数据库查询的结果
      * 查询出所有的二级和三级分类的数据
      * 并封装为Map<String, Catalog2VO>对象
+     * 在SpringBoot中，默认的情况下是单例
      *
      * @return
      */
-    public Map<String, List<Catalog2VO>> getCatelog2JSON11() {
-        // 从Redis中获取分类的信息
-        String key = "catalogJSON";
-        String catalogJSON = stringRedisTemplate.opsForValue().get(key);
-        if (StringUtils.isEmpty(catalogJSON)) {
-            // 缓存中没有数据，需要从数据库中查询
-            System.out.println("缓存没有命中.....");
-            Map<String, List<Catalog2VO>> catelog2JSONForDb = getCatelog2JSONForDb();
-            if (catelog2JSONForDb == null) {
-                //说明数据不存在，放入空值结果缓存，并设置过期时间，防止缓存穿透
-                stringRedisTemplate.opsForValue().set(key, "1", 5, TimeUnit.SECONDS);
-            }
-            // 从数据库中查询到的数据，我们需要给缓存中也存储一份
-            //设置随机过期时间，防止缓存雪崩
-            String json = JSON.toJSONString(catelog2JSONForDb);
-            stringRedisTemplate.opsForValue().set(key, json, new Random().nextInt(10) + 1, TimeUnit.HOURS);
-            return catelog2JSONForDb;
-        }
-        System.out.println("缓存命中了....");
-        // 表示缓存命中了数据，那么从缓存中获取信息，然后返回
-        Map<String, List<Catalog2VO>> stringListMap
-                = JSON.parseObject(catalogJSON, new TypeReference<Map<String, List<Catalog2VO>>>() {
-        });
-        return stringListMap;
-    }
-
     public Map<String, List<Catalog2VO>> getCatelog2JSONForDb() {
         String keys = "catalogJSON";
         synchronized (this) {//加同步锁，防止缓存击穿

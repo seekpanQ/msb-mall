@@ -4,8 +4,10 @@ import com.msb.mall.product.entity.CategoryEntity;
 import com.msb.mall.product.service.CategoryService;
 import com.msb.mall.product.vo.Catalog2VO;
 import org.redisson.api.RLock;
+import org.redisson.api.RReadWriteLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Controller
 public class IndexController {
@@ -22,6 +25,8 @@ public class IndexController {
     private CategoryService categoryService;
     @Autowired
     private RedissonClient redissonClient;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     @GetMapping({"/", "/home", "/index"})
     public String index(Model model) {
@@ -67,5 +72,55 @@ public class IndexController {
             myLock.unlock();
         }
         return "hello";
+    }
+
+    @GetMapping("/writer")
+    @ResponseBody
+    public String writerValue() {
+        RReadWriteLock readWriteLock = redissonClient.getReadWriteLock("rw-lock");
+        // 加写锁
+        RLock rLock = readWriteLock.writeLock();
+        String s = null;
+        rLock.lock();
+        try {
+            System.out.println("加写锁成功....");
+            s = UUID.randomUUID().toString();
+            stringRedisTemplate.opsForValue().set("msg", s);
+            Thread.sleep(30000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            rLock.unlock();
+        }
+        return s;
+    }
+
+    /**
+     * 读 读 ：相对于没有加锁
+     * 写 读 ：需要等待写锁释放
+     * 写 写 ： 阻塞的方式
+     * 读 写 ：读数据的时候也会添加锁，那么写的行为也会阻塞
+     *
+     * @return
+     */
+    @GetMapping("/reader")
+    @ResponseBody
+    public String readValue() {
+        RReadWriteLock readWriteLock = redissonClient.getReadWriteLock("rw-lock");
+        // 加读锁
+        RLock rLock = readWriteLock.readLock();
+        rLock.lock();
+        String s = null;
+        try {
+            System.out.println("加读锁成功....");
+            s = stringRedisTemplate.opsForValue().get("msg");
+            Thread.sleep(30000);
+        } catch (Exception e) {
+
+        } finally {
+            rLock.unlock();
+        }
+
+        return s;
     }
 }

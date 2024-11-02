@@ -81,7 +81,12 @@ public class MallSearchServiceImpl implements MallSearchService {
         BoolQueryBuilder boolQuery = new BoolQueryBuilder();
         // 1.1 关键字的条件
         if (StringUtils.isNotEmpty(param.getKeyword())) {
-            boolQuery.must(QueryBuilders.matchQuery("subTitle", param.getKeyword()));
+            String keyword = param.getKeyword();//关键字去重
+            if (keyword.contains(",")) {
+                String[] keywordArr = param.getKeyword().split(",");
+                keyword = keywordArr[keywordArr.length - 1];
+            }
+            boolQuery.must(QueryBuilders.matchQuery("subTitle", keyword));
         }
         // 1.2 类别的检索条件
         if (param.getCatalog3Id() != null) {

@@ -42,6 +42,10 @@ spring:
           uri: lb://mall-product
           predicates:
             - Host=msb.mall.com
+        - id: msbitem_host_route
+          uri: lb://mall-product
+          predicates:
+            - Host=msb.item.com
         - id: msbsearch_host_route
           uri: lb://mall-search
           predicates:

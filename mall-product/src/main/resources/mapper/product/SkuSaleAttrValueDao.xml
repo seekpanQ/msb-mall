@@ -14,9 +14,9 @@
     </resultMap>
 
     <select id="getSkuSaleAttrValueBySpuId" resultType="com.msb.mall.product.vo.SkuItemSaleAttrVo">
-        SELECT pssav.attr_id,
-               pssav.attr_name,
-               GROUP_CONCAT(DISTINCT pssav.attr_value)
+        SELECT pssav.attr_id attr_id,
+               pssav.attr_name attr_name,
+               GROUP_CONCAT(DISTINCT pssav.attr_value) attr_value
         FROM pms_sku_info psi
                  LEFT JOIN pms_sku_sale_attr_value pssav
                            ON psi.sku_id = pssav.sku_id

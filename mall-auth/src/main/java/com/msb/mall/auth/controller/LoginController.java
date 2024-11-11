@@ -4,14 +4,23 @@ import com.msb.common.constant.SMSConstant;
 import com.msb.common.exception.BizCodeEnum;
 import com.msb.common.utils.R;
 import com.msb.mall.auth.feign.ThirdPartyFeignService;
+import com.msb.mall.auth.vo.UserRegisterVo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -54,8 +63,36 @@ public class LoginController {
         return "login";
     }
 
-    @GetMapping("/register")
-    public String register() {
-        return "reg";
+    @PostMapping("/sms/register")
+    public String register(@Valid UserRegisterVo userRegisterVo, BindingResult bindingResult, Model model) {
+        Map<String, String> map = new HashMap<>();
+        if (bindingResult.hasErrors()) {
+            // 表示提交的数据不合法
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                String field = fieldError.getField();
+                String defaultMessage = fieldError.getDefaultMessage();
+                map.put(field, defaultMessage);
+            }
+            model.addAttribute("error", map);
+            return "/reg";
+        } else {
+            // 验证码是否正确
+            String code = (String) redisTemplate.opsForValue().get(SMSConstant.SMS_CODE_PERFIX + userRegisterVo.getPhone());
+            code = code.split("_")[0];
+            if (!code.equals(userRegisterVo.getCode())) {
+                // 说明验证码不正确
+                map.put("code", "验证码错误");
+                model.addAttribute("error", map);
+                return "/reg";
+            } else {
+                // 验证码正确  删除验证码
+                redisTemplate.delete(SMSConstant.SMS_CODE_PERFIX + userRegisterVo.getPhone());
+
+                System.out.println("------->验证码正确");
+            }
+        }
+        // 表单提交的注册的数据是合法的
+        return "redirect:/login.html";
     }
 }

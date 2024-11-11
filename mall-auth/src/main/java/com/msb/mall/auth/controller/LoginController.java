@@ -3,6 +3,7 @@ package com.msb.mall.auth.controller;
 import com.msb.common.constant.SMSConstant;
 import com.msb.common.exception.BizCodeEnum;
 import com.msb.common.utils.R;
+import com.msb.mall.auth.feign.ThirdPartyFeignService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,6 +20,8 @@ public class LoginController {
 
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private ThirdPartyFeignService thirdPartyFeignService;
 
     @ResponseBody
     @GetMapping("/sms/sendCode")
@@ -38,6 +41,7 @@ public class LoginController {
         }
         // 生成随机的验证码 --》 把生成的验证码存储到Redis服务中 sms:code:13316995437  12345
         String code = UUID.randomUUID().toString().substring(0, 5);
+        thirdPartyFeignService.sendSmsCode(phone, code);
         code = code + "_" + System.currentTimeMillis();
         System.out.println("code = " + code);
         redisTemplate.opsForValue().set(SMSConstant.SMS_CODE_PERFIX + phone, code, 10, TimeUnit.MINUTES);

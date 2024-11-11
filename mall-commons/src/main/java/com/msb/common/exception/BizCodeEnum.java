@@ -7,7 +7,9 @@ public enum BizCodeEnum {
     UNKNOW_EXCEPTION(10000, "系统未知异常"),
 
     VALID_EXCEPTION(10001, "参数格式异常"),
+    VALID_SMS_EXCEPTION(10002,"短信发送频率太高，稍等一会发送!"),
     PRODUCT_UP_EXCEPTION(11001, "商城上架异常");
+
 
     private int code;
     private String msg;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="utf-8"/>
@@ -6059,21 +6059,21 @@ Cookie</span>是由网页服务器存放在您的访问设备上的文本文件�
             </div>
         </div>
         <div class="register-box">
-            <label for="username" class="other_label">
+            <label class="other_label">
                 <span>中国 0086∨</span>
-                <input class="phone" maxlength="20" type="text" placeholder="建议使用常用手机">
+                <input class="phone" id="phoneNum" maxlength="20" type="text" placeholder="建议使用常用手机">
             </label>
             <div class="tips">
 
             </div>
         </div>
         <div class="register-box">
-            <label for="username" class="other_label">验 证 码
+            <label class="other_label">验 证 码
                 <input maxlength="20" type="text" placeholder="请输入验证码" class="caa">
             </label>
             <a href="#" id="sendCode">点击发送验证码</a>
             <!--            <span id="code"></span>-->
-            <div class="tips">
+            <div class="tips" th:text="${error!=null?(#maps.containsKey(error,'code')?error.code:''):''}">
 
             </div>
         </div>
@@ -6331,27 +6331,34 @@ Cookie</span>是由网页服务器存放在您的访问设备上的文本文件�
     });
 
     $("#sendCode").click(function () {
-		if($(this).hasClass("d1")){
-			// 说明正在倒计时
-		}else{
-			// 给指定的手机号发送验证码
-			timeoutChangeStyle();
-		}
+        if ($(this).hasClass("d1")) {
+            // 说明正在倒计时
+        } else {
+            // 给指定的手机号发送验证码
+            $.get("/sms/sendCode?phone=" + $("#phoneNum").val(), function (data) {
+                if (data.code != 0) {
+                    // 请求处理有异常
+                    alert(data.msg);
+                }
+            });
+            timeoutChangeStyle();
+        }
     });
 
     var num = 60;
+
     function timeoutChangeStyle() {
-		$("#sendCode").attr("class","d1");
-        if (num == 0){
-		// 说明1分钟到了，可以再次发送验证码了
-			$("#sendCode").text("发送验证码")
-			num= 60;
-			$("#sendCode").attr("class","");
+        $("#sendCode").attr("class", "d1");
+        if (num == 0) {
+            // 说明1分钟到了，可以再次发送验证码了
+            $("#sendCode").text("发送验证码")
+            num = 60;
+            $("#sendCode").attr("class", "");
         } else {
-			setTimeout('timeoutChangeStyle()',1000);
+            setTimeout('timeoutChangeStyle()', 1000);
             $("#sendCode").text(num + "s后再次发送");
         }
-		num --;
+        num--;
     }
 </script>
 </body>

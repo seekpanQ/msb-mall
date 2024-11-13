@@ -12,6 +12,7 @@ import com.msb.mall.member.exception.PhoneExsitExecption;
 import com.msb.mall.member.exception.UsernameExsitException;
 import com.msb.mall.member.service.MemberLevelService;
 import com.msb.mall.member.service.MemberService;
+import com.msb.mall.member.vo.MemberLoginVO;
 import com.msb.mall.member.vo.MemberReigerVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -60,6 +61,25 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         // 设置其他的默认值
         this.save(entity);
 
+    }
+
+    @Override
+    public MemberEntity login(MemberLoginVO vo) {
+        // 1.根据账号或者手机号来查询会员信息
+        MemberEntity entity = this.getOne(new QueryWrapper<MemberEntity>()
+                .eq("username", vo.getUserName())
+                .or()
+                .eq("mobile", vo.getUserName()));
+        if (entity != null) {
+            // 2.如果账号或者手机号存在 然后根据密码加密后的校验来判断是否登录成功
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+            boolean matches = encoder.matches(vo.getPassword(), entity.getPassword());
+            if (matches) {
+                // 表明登录成功
+                return entity;
+            }
+        }
+        return null;
     }
 
     /**

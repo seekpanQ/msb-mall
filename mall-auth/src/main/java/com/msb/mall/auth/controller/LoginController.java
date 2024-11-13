@@ -5,6 +5,7 @@ import com.msb.common.exception.BizCodeEnum;
 import com.msb.common.utils.R;
 import com.msb.mall.auth.feign.MemberFeignService;
 import com.msb.mall.auth.feign.ThirdPartyFeignService;
+import com.msb.mall.auth.vo.LoginVo;
 import com.msb.mall.auth.vo.UserRegisterVo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
@@ -60,12 +62,6 @@ public class LoginController {
         return R.ok();
     }
 
-    @GetMapping("/login")
-    public String login() {
-
-        return "login";
-    }
-
     @PostMapping("/sms/register")
     public String register(@Valid UserRegisterVo userRegisterVo, BindingResult bindingResult, Model model) {
         Map<String, String> map = new HashMap<>();
@@ -104,5 +100,23 @@ public class LoginController {
                 }
             }
         }
+    }
+
+    /**
+     * 登录的方法
+     *
+     * @param loginVo
+     * @return
+     */
+    @PostMapping("/login")
+    public String login(LoginVo loginVo, HttpSession session) {
+        R r = memberFeignService.login(loginVo);
+        if (r.getCode() == 0) {
+            // 表示登录成功
+            return "redirect:http://msb.mall.com/home";
+        }
+        session.setAttribute("errors", r.get("msg"));
+        // 表示登录失败,重新跳转到登录页面
+        return "redirect:http://msb.auth.com/login.html";
     }
 }

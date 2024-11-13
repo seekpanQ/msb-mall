@@ -1,32 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" type="text/css" href="/static/login/JD_sass/JD1.css" />
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="/static/login/JD_sass/JD1.css"/>
     <script src="/static/login/JD_js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
     <title>msbmall</title>
 </head>
 <body>
 <!--顶部logo-->
 <header>
-    <a href="http://www.baidu.com"><img src="/static/login/JD_img/logo.jpg" /></a>
+    <a href="http://www.baidu.com"><img src="/static/login/JD_img/logo.jpg"/></a>
     <p>欢迎登录</p>
     <div class="top-1">
-        <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_06.png" /><span>登录页面,调查问卷</span>
+        <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_06.png"/><span>登录页面,调查问卷</span>
     </div>
 </header>
 
 <div class="top-2">
     <div class="top-2a">
-        <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_11.png" />
-        <p>依据《网络安全法》，为保障您的账户安全和正常使用，请尽快完成手机号验证！新版《<span>msb商城隐私政策</span>》已上线，将更有利于保护您的个人隐私。</p>
+        <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_11.png"/>
+        <p>依据《网络安全法》，为保障您的账户安全和正常使用，请尽快完成手机号验证！新版《<span>msb商城隐私政策</span>》已上线，将更有利于保护您的个人隐私。
+        </p>
     </div>
 </div>
 
 <!--大图-->
 <div class="top-3">
     <div class="img_1">
-        <img src="/static/login/JD_img/5731485aN1134b4f0.png" />
+        <img src="/static/login/JD_img/5731485aN1134b4f0.png"/>
     </div>
     <div id="sign">
         <div class="si_top">
@@ -36,19 +37,20 @@
         </div>
         <div class="si_cen">
             <h2 class="act btn1">扫码登录</h2>
+            <span th:if="${session.msg != null}">[[${session.msg}]]</span>
             <span>|</span>
             <h2 class="btn1">账户登录</h2>
         </div>
         <div class="si_bom tab">
-            <img src="/static/login/JD_img/show.png" class="bom_1" />
-            <a href="#"><img src="/static/login/JD_img/phone-orange.png" class="bom_2" /></a>
+            <img src="/static/login/JD_img/show.png" class="bom_1"/>
+            <a href="#"><img src="/static/login/JD_img/phone-orange.png" class="bom_2"/></a>
             <h6>打开<span class="red">手机msb商城</span> 扫描二维码</h6>
             <p>
-                <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_15.png" />
+                <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_15.png"/>
                 <span><a href="#">免输入</a></span>
-                <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_17.png" />
+                <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_17.png"/>
                 <span><a href="#">更快</a></span>
-                <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_19.png" />
+                <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_19.png"/>
                 <span><a href="#">更安全</a></span>
             </p>
         </div>
@@ -57,39 +59,46 @@
                 <div></div>
                 请输入账户名和密码
             </div>
-            <ul>
-                <li class="top_1">
-                    <img src="/static/login/JD_img/user_03.png" class="err_img1" />
-                    <input type="text" placeholder=" 邮箱/用户名/已验证手机" class="user" />
-                </li>
-                <li>
-                    <img src="/static/login/JD_img/user_06.png" class="err_img2" />
-                    <input type="password" placeholder=" 密码" class="password" />
-                </li>
-                <li class="bri">
-                    <a href="">忘记密码</a>
-                </li>
-                <li class="ent"><button class="btn2"><a class="a">登 &nbsp; &nbsp;录</a></button></li>
-            </ul>
+            <form action="/login" method="post">
+                <div class="tips" th:text="${session.errors}">
+
+                </div>
+                <ul>
+                    <li class="top_1">
+                        <img src="/static/login/JD_img/user_03.png" class="err_img1"/>
+                        <input name="userName" type="text" placeholder=" 邮箱/用户名/已验证手机" class="user"/>
+                    </li>
+                    <li>
+                        <img src="/static/login/JD_img/user_06.png" class="err_img2"/>
+                        <input name="password" type="password" placeholder=" 密码" class="password"/>
+                    </li>
+                    <li class="bri">
+                        <a href="">忘记密码</a>
+                    </li>
+                    <li class="ent">
+                        <button class="btn2" type="submit"><a class="a">登 &nbsp; &nbsp;录</a></button>
+                    </li>
+                </ul>
+            </form>
         </div>
         <div class="si_out">
             <ul>
                 <li>
                     <a href="#">
-                        <img src="/static/login/JD_img/qq.png" />
+                        <img src="/static/login/JD_img/qq.png"/>
                         <span>QQ</span>
                     </a>
                 </li>
-                <li class="f4"> | </li>
+                <li class="f4"> |</li>
                 <li>
                     <a href="">
-                        <img src="/static/login/JD_img/weixin.png" />
+                        <img src="/static/login/JD_img/weixin.png"/>
                         <span>微信</span>
                     </a>
                 </li>
             </ul>
             <h5 class="rig">
-                <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_25.png" />
+                <img src="/static/login/JD_img/4de5019d2404d347897dee637895d02b_25.png"/>
                 <span><a href="http://msb.auth.com/reg.html">立即注册</a></span>
             </h5>
         </div>
@@ -133,7 +142,7 @@
     var act = alBtn[0]
     for (var i = 0; i < alBtn.length; i++) {
         alBtn[i].indent = i;
-        alBtn[i].onclick = function() {
+        alBtn[i].onclick = function () {
             act.className = '';
             alDiv[act.indent].style.display = 'none';
             this.className = 'act'
@@ -149,32 +158,32 @@
     var err_img1 = document.getElementsByClassName('err_img1')[0];
     var err_img2 = document.getElementsByClassName('err_img2')[0];
 
-    btn2.onclick = function() {
-        if (user.value == '' || pass.value == '') {
-            err.style.display = 'block';
-            user.style.border = '1px solid red';
-            pass.style.border = '1px solid red';
-            err_img1.src = '/static/login/JD_img/img11.png';
-            err_img2.src = '/static/login/JD_img/img22.png';
-        } else {
-            var a = document.getElementsByClassName("a")[0].href = "http://www.baidu.com";
-        }
-        user.onfocus = function() {
-            err_img1.src = '/static/login/JD_img/grow1.png';
-            user.style.border = '1px solid #999';
-        }
-        pass.onfocus = function() {
-            err_img2.src = '/static/login/JD_img/grow2.png';
-            pass.style.border = '1px solid #999';
-        }
-        user.onblur = function() {
-            err_img1.src = '/static/login/JD_img/img11.png';
-            user.style.border = '1px solid red';
-        }
-        pass.onblur = function() {
-            err_img2.src = '/static/login/JD_img/img22.png';
-            pass.style.border = '1px solid red';
-        }
+    btn2.onclick = function () {
+        // if (user.value == '' || pass.value == '') {
+        //     err.style.display = 'block';
+        //     user.style.border = '1px solid red';
+        //     pass.style.border = '1px solid red';
+        //     err_img1.src = '/static/login/JD_img/img11.png';
+        //     err_img2.src = '/static/login/JD_img/img22.png';
+        // } else {
+        //     var a = document.getElementsByClassName("a")[0].href = "http://www.baidu.com";
+        // }
+        // user.onfocus = function () {
+        //     err_img1.src = '/static/login/JD_img/grow1.png';
+        //     user.style.border = '1px solid #999';
+        // }
+        // pass.onfocus = function () {
+        //     err_img2.src = '/static/login/JD_img/grow2.png';
+        //     pass.style.border = '1px solid #999';
+        // }
+        // user.onblur = function () {
+        //     err_img1.src = '/static/login/JD_img/img11.png';
+        //     user.style.border = '1px solid red';
+        // }
+        // pass.onblur = function () {
+        //     err_img2.src = '/static/login/JD_img/img22.png';
+        //     pass.style.border = '1px solid red';
+        // }
     }
 </script>
 </html>

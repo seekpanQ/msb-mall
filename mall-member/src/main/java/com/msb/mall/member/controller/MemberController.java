@@ -7,6 +7,7 @@ import com.msb.mall.member.entity.MemberEntity;
 import com.msb.mall.member.exception.PhoneExsitExecption;
 import com.msb.mall.member.exception.UsernameExsitException;
 import com.msb.mall.member.service.MemberService;
+import com.msb.mall.member.vo.MemberLoginVO;
 import com.msb.mall.member.vo.MemberReigerVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -50,6 +51,16 @@ public class MemberController {
                     BizCodeEnum.UNKNOW_EXCEPTION.getMsg());
         }
         return R.ok();
+    }
+
+    @RequestMapping("/login")
+    public R login(@RequestBody MemberLoginVO vo) {
+        MemberEntity entity = memberService.login(vo);
+        if (entity != null) {
+            return R.ok();
+        }
+        return R.error(BizCodeEnum.USERNAME_PHONE_VALID_EXCEPTION.getCode(),
+                BizCodeEnum.USERNAME_PHONE_VALID_EXCEPTION.getMsg());
     }
 
     /**

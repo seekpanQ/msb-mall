@@ -1,9 +1,13 @@
 package com.msb.mall.member.controller;
 
+import com.msb.common.exception.BizCodeEnum;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
 import com.msb.mall.member.entity.MemberEntity;
+import com.msb.mall.member.exception.PhoneExsitExecption;
+import com.msb.mall.member.exception.UsernameExsitException;
 import com.msb.mall.member.service.MemberService;
+import com.msb.mall.member.vo.MemberReigerVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +27,30 @@ import java.util.Map;
 public class MemberController {
     @Autowired
     private MemberService memberService;
+
+    /**
+     * 会员注册
+     *
+     * @param vo
+     * @return
+     */
+    @PostMapping("/register")
+    public R register(@RequestBody MemberReigerVO vo) {
+        try {
+            memberService.register(vo);
+        } catch (UsernameExsitException exception) {
+            return R.error(BizCodeEnum.USERNAME_EXSIT_EXCEPTION.getCode(),
+                    BizCodeEnum.USERNAME_EXSIT_EXCEPTION.getMsg());
+        } catch (PhoneExsitExecption execption) {
+            return R.error(BizCodeEnum.PHONE_EXSIT_EXCEPTION.getCode(),
+                    BizCodeEnum.PHONE_EXSIT_EXCEPTION.getMsg());
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return R.error(BizCodeEnum.UNKNOW_EXCEPTION.getCode(),
+                    BizCodeEnum.UNKNOW_EXCEPTION.getMsg());
+        }
+        return R.ok();
+    }
 
     /**
      * 列表

@@ -3,6 +3,7 @@ package com.msb.mall.auth.controller;
 import com.msb.common.constant.SMSConstant;
 import com.msb.common.exception.BizCodeEnum;
 import com.msb.common.utils.R;
+import com.msb.mall.auth.feign.MemberFeignService;
 import com.msb.mall.auth.feign.ThirdPartyFeignService;
 import com.msb.mall.auth.vo.UserRegisterVo;
 import org.apache.commons.lang.StringUtils;
@@ -31,6 +32,8 @@ public class LoginController {
     private RedisTemplate redisTemplate;
     @Autowired
     private ThirdPartyFeignService thirdPartyFeignService;
+    @Autowired
+    private MemberFeignService memberFeignService;
 
     @ResponseBody
     @GetMapping("/sms/sendCode")
@@ -88,11 +91,18 @@ public class LoginController {
             } else {
                 // 验证码正确  删除验证码
                 redisTemplate.delete(SMSConstant.SMS_CODE_PERFIX + userRegisterVo.getPhone());
-
-                System.out.println("------->验证码正确");
+                // 远程调用对应的服务 完成注册功能
+                R r = memberFeignService.register(userRegisterVo);
+                if (r.getCode() == 0) {
+                    // 注册成功
+                    return "redirect:http://msb.auth.com/login.html";
+                } else {
+                    // 注册失败
+                    map.put("msg", r.getCode() + ":" + r.get("msg"));
+                    model.addAttribute("error", map);
+                    return "/reg";
+                }
             }
         }
-        // 表单提交的注册的数据是合法的
-        return "redirect:/login.html";
     }
 }

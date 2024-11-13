@@ -8,6 +8,8 @@ public enum BizCodeEnum {
 
     VALID_EXCEPTION(10001, "参数格式异常"),
     VALID_SMS_EXCEPTION(10002,"短信发送频率太高，稍等一会发送!"),
+    USERNAME_EXSIT_EXCEPTION(15001,"用户名存在"),
+    PHONE_EXSIT_EXCEPTION(15002,"手机号存在"),
     PRODUCT_UP_EXCEPTION(11001, "商城上架异常");
 
 

@@ -8,6 +8,7 @@ import com.msb.common.utils.Query;
 import com.msb.mall.member.dao.MemberLevelDao;
 import com.msb.mall.member.entity.MemberLevelEntity;
 import com.msb.mall.member.service.MemberLevelService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -15,7 +16,8 @@ import java.util.Map;
 
 @Service("memberLevelService")
 public class MemberLevelServiceImpl extends ServiceImpl<MemberLevelDao, MemberLevelEntity> implements MemberLevelService {
-
+    @Autowired
+    private MemberLevelDao memberLevelDao;
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
         IPage<MemberLevelEntity> page = this.page(
@@ -24,6 +26,12 @@ public class MemberLevelServiceImpl extends ServiceImpl<MemberLevelDao, MemberLe
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public MemberLevelEntity queryMemberLevelDefault() {
+        MemberLevelEntity level = memberLevelDao.queryMemberLevelDefault();
+        return level;
     }
 
 }

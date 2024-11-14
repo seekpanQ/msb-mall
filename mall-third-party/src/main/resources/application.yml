@@ -1,10 +1,18 @@
-
 server:
-  port: 8100
+  port: 8060
 spring:
   cloud:
     nacos:
       discovery:
         server-addr: 192.168.91.131:8848
+    alicloud:
+      oss:
+        endpoint: oss-cn-beijing.aliyuncs.com
+        bucket: study-seekpan-mall
+      sms:
+        region-id: cn-beijing
+        endpoint: dysmsapi.aliyuncs.com
+        sign-name: 阿里云短信测试
+        template-code: SMS_154950909
   application:
     name: mall-third

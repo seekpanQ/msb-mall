@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.ExecutionException;
+
 @RestController
 public class SMSController {
 
@@ -22,7 +24,7 @@ public class SMSController {
      * @return
      */
     @GetMapping("/sms/sendCode")
-    public R sendSmsCode(@RequestParam("phone") String phone, @RequestParam("code") String code) {
+    public R sendSmsCode(@RequestParam("phone") String phone, @RequestParam("code") String code) throws ExecutionException, InterruptedException {
         smsComponent.sendSmsCode(phone, code);
         return R.ok();
     }

@@ -1,25 +1,47 @@
 package com.msb.mall.thirdparty;
 
+import com.aliyun.auth.credentials.Credential;
+import com.aliyun.auth.credentials.provider.StaticCredentialProvider;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
-import com.msb.mall.thirdparty.utils.HttpUtils;
-import org.apache.http.HttpResponse;
+import com.aliyun.sdk.service.dysmsapi20170525.AsyncClient;
+import com.aliyun.sdk.service.dysmsapi20170525.models.SendSmsRequest;
+import com.aliyun.sdk.service.dysmsapi20170525.models.SendSmsResponse;
+import com.google.gson.Gson;
+import com.msb.mall.thirdparty.utils.SmsComponent;
+import darabonba.core.client.ClientOverrideConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @SpringBootTest
 class MallThirdPartyApplicationTests {
 
+
+    @Value("${spring.cloud.alicloud.access-key}")
+    private String accessId;
+    @Value("${spring.cloud.alicloud.secret-key}")
+    private String accessSecret;
+    @Value("${spring.cloud.alicloud.sms.region-id}")
+    private String regionId;
+    @Value("${spring.cloud.alicloud.sms.endpoint}")
+    private String endpoint;
+    @Value("${spring.cloud.alicloud.sms.sign-name}")
+    private String signName;
+    @Value("${spring.cloud.alicloud.sms.template-code}")
+    private String templateCode;
     @Autowired
     private OSSClient ossClient;
+    @Autowired
+    private SmsComponent component;
 
     @Test
     void contextLoads() {
@@ -59,31 +81,60 @@ class MallThirdPartyApplicationTests {
     }
 
     @Test
-    public void testSendSMS1(){
-        String host = "https://dfsns.market.alicloudapi.com";
-        String path = "/data/send_sms";
-        String method = "POST";
-        String appcode = "192a6811b5a4458f9402da3b0c3b9aa5";
-        Map<String, String> headers = new HashMap<String, String>();
-        //最后在header中的格式(中间是英文空格)为Authorization:APPCODE 83359fd73fe94948385f570e3c139105
-        headers.put("Authorization", "APPCODE " + appcode);
-        //根据API的要求，定义相对应的Content-Type
-        headers.put("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-        Map<String, String> querys = new HashMap<String, String>();
-        Map<String, String> bodys = new HashMap<String, String>();
-        bodys.put("content", "code:1122");
-        bodys.put("phone_number", "18518177096");
-        bodys.put("template_id", "TPL_0000");
+    public void testSendSMS2() throws ExecutionException, InterruptedException {
+        component.sendSmsCode("185******96", "9966");
+    }
 
+    @Test
+    public void testSendSMS1() throws ExecutionException, InterruptedException {
+        String phoneNumber = "185******96";
+        // Configure Credentials authentication information, including ak, secret, token
+        StaticCredentialProvider provider = StaticCredentialProvider.create(Credential.builder()
+                // Please ensure that the environment variables ALIBABA_CLOUD_ACCESS_KEY_ID and ALIBABA_CLOUD_ACCESS_KEY_SECRET are set.
+                .accessKeyId(accessId)
+                .accessKeySecret(accessSecret)
+                //.securityToken(System.getenv("ALIBABA_CLOUD_SECURITY_TOKEN")) // use STS token
+                .build());
 
-        try {
-            HttpResponse response = HttpUtils.doPost(host, path, method, headers, querys, bodys);
-            System.out.println(response.toString());
-            //获取response的body
-            //System.out.println(EntityUtils.toString(response.getEntity()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Configure the Client
+        AsyncClient client = AsyncClient.builder()
+                .region(regionId) // Region ID
+                //.httpClient(httpClient) // Use the configured HttpClient, otherwise use the default HttpClient (Apache HttpClient)
+                .credentialsProvider(provider)
+                //.serviceConfiguration(Configuration.create()) // Service-level configuration
+                // Client-level configuration rewrite, can set Endpoint, Http request parameters, etc.
+                .overrideConfiguration(
+                        ClientOverrideConfiguration.create()
+                                // Endpoint 请参考 https://api.aliyun.com/product/Dysmsapi
+                                .setEndpointOverride(endpoint)
+                        //.setConnectTimeout(Duration.ofSeconds(30))
+                )
+                .build();
+        // Parameter settings for API request
+        SendSmsRequest sendSmsRequest = SendSmsRequest.builder()
+                .signName(signName)
+                .templateCode(templateCode)
+                .phoneNumbers(phoneNumber)
+                .templateParam("{\"code\":\"1234\"}")
+                // Request-level configuration rewrite, can set Http request parameters, etc.
+                // .requestConfiguration(RequestConfiguration.create().setHttpHeaders(new HttpHeaders()))
+                .build();
+
+        // Asynchronously get the return value of the API request
+        CompletableFuture<SendSmsResponse> response = client.sendSms(sendSmsRequest);
+        // Synchronously get the return value of the API request
+        SendSmsResponse resp = response.get();
+        System.out.println(new Gson().toJson(resp));
+        // Asynchronous processing of return values
+        /*response.thenAccept(resp -> {
+            System.out.println(new Gson().toJson(resp));
+        }).exceptionally(throwable -> { // Handling exceptions
+            System.out.println(throwable.getMessage());
+            return null;
+        });*/
+
+        // Finally, close the client
+        client.close();
     }
 
 }

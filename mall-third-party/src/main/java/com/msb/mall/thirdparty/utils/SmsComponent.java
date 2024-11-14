@@ -1,23 +1,35 @@
 package com.msb.mall.thirdparty.utils;
 
 
+import com.aliyun.auth.credentials.Credential;
+import com.aliyun.auth.credentials.provider.StaticCredentialProvider;
+import com.aliyun.sdk.service.dysmsapi20170525.AsyncClient;
+import com.aliyun.sdk.service.dysmsapi20170525.models.SendSmsRequest;
+import com.aliyun.sdk.service.dysmsapi20170525.models.SendSmsResponse;
+import com.google.gson.Gson;
+import darabonba.core.client.ClientOverrideConfiguration;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-@ConfigurationProperties(prefix = "spring.cloud.alicloud.sms")
 @Component
-@Data
 public class SmsComponent {
-
-    private String host;
-    private String path;
-    private String method = "POST";
-    private String appCode;
-
+    @Value("${spring.cloud.alicloud.access-key}")
+    private String accessId;
+    @Value("${spring.cloud.alicloud.secret-key}")
+    private String accessSecret;
+    @Value("${spring.cloud.alicloud.sms.region-id}")
+    private String regionId;
+    @Value("${spring.cloud.alicloud.sms.endpoint}")
+    private String endpoint;
+    @Value("${spring.cloud.alicloud.sms.sign-name}")
+    private String signName;
+    @Value("${spring.cloud.alicloud.sms.template-code}")
+    private String templateCode;
 
     /**
      * 发送短信验证码
@@ -25,30 +37,29 @@ public class SmsComponent {
      * @param phone 发送的手机号
      * @param code  发送的短信验证码
      */
-    public void sendSmsCode(String phone, String code) {
+    public void sendSmsCode(String phone, String code) throws ExecutionException, InterruptedException {
+        StaticCredentialProvider provider = StaticCredentialProvider.create(Credential.builder()
+                .accessKeyId(accessId)
+                .accessKeySecret(accessSecret)
+                .build());
 
-        Map<String, String> headers = new HashMap<String, String>();
-        //最后在header中的格式(中间是英文空格)为Authorization:APPCODE 83359fd73fe94948385f570e3c139105
-        headers.put("Authorization", "APPCODE " + appCode);
-        //根据API的要求，定义相对应的Content-Type
-        headers.put("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-        Map<String, String> querys = new HashMap<String, String>();
-        Map<String, String> bodys = new HashMap<String, String>();
-        bodys.put("content", "code:" + code);
-        bodys.put("phone_number", phone);
-        bodys.put("template_id", "TPL_0000");
-
-        //待申请资质验证实现
-        System.out.println(code);
-
-
-//        try {
-//            HttpResponse response = HttpUtils.doPost(host, path, method, headers, querys, bodys);
-//            System.out.println(response.toString());
-//            //获取response的body
-//            //System.out.println(EntityUtils.toString(response.getEntity()));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        AsyncClient client = AsyncClient.builder()
+                .region(regionId) // Region ID
+                .credentialsProvider(provider)
+                .overrideConfiguration(
+                        ClientOverrideConfiguration.create()
+                                .setEndpointOverride(endpoint)
+                )
+                .build();
+        SendSmsRequest sendSmsRequest = SendSmsRequest.builder()
+                .signName(signName)
+                .templateCode(templateCode)
+                .phoneNumbers(phone)
+                .templateParam("{\"code\":\"" + code + "\"}")
+                .build();
+        CompletableFuture<SendSmsResponse> response = client.sendSms(sendSmsRequest);
+        SendSmsResponse resp = response.get();
+        System.out.println(new Gson().toJson(resp));
+        client.close();
     }
 }

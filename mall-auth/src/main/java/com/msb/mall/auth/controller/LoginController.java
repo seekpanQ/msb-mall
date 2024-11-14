@@ -24,7 +24,6 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Controller
@@ -54,7 +53,11 @@ public class LoginController {
             }
         }
         // 生成随机的验证码 --》 把生成的验证码存储到Redis服务中 sms:code:13316995437  12345
-        String code = UUID.randomUUID().toString().substring(0, 5);
+        int size = 5;
+        double mathRandom = (Math.random() * 9 + 1) * (Math.pow(10, size - 1));
+        int resultInt = (int) mathRandom;
+        String code = String.valueOf(resultInt);
+
         thirdPartyFeignService.sendSmsCode(phone, code);
         code = code + "_" + System.currentTimeMillis();
         System.out.println("code = " + code);

@@ -1,5 +1,6 @@
 package com.msb.mall.member.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.msb.common.exception.BizCodeEnum;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
@@ -9,6 +10,7 @@ import com.msb.mall.member.exception.UsernameExsitException;
 import com.msb.mall.member.service.MemberService;
 import com.msb.mall.member.vo.MemberLoginVO;
 import com.msb.mall.member.vo.MemberReigerVO;
+import com.msb.mall.member.vo.SocialUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,6 +63,18 @@ public class MemberController {
         }
         return R.error(BizCodeEnum.USERNAME_PHONE_VALID_EXCEPTION.getCode(),
                 BizCodeEnum.USERNAME_PHONE_VALID_EXCEPTION.getMsg());
+    }
+
+    /**
+     * 社交登录
+     *
+     * @param vo
+     * @return
+     */
+    @RequestMapping("/oauth2/login")
+    public R socialLogin(@RequestBody SocialUser vo) {
+        MemberEntity entity = memberService.login(vo);
+        return R.ok().put("entity", JSON.toJSONString(entity));
     }
 
     /**

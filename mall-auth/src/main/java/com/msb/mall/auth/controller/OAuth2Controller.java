@@ -26,7 +26,7 @@ public class OAuth2Controller {
         body.put("client_id", "2034380592");
         body.put("client_secret", "9404e199af47a9417e03f8fc0bc6c8d1");
         body.put("grant_type", "authorization_code");
-        body.put("redirect_uri", "http://msb.auth.com/oauth/weibo/success");
+        body.put("redirect_uri", "http://auth.msb.com/oauth/weibo/success");
         body.put("code", code);
         // 根据Code获取对应的Token信息
         HttpResponse post = HttpUtils.doPost("https://api.weibo.com", "/oauth2/access_token",
@@ -34,7 +34,7 @@ public class OAuth2Controller {
         int statusCode = post.getStatusLine().getStatusCode();
         if (statusCode != 200) {
             // 说明获取Token失败,就调回到登录页面
-            return "redirect:http://msb.auth.com/login.html";
+            return "redirect:http://auth.msb.com/login.html";
         }
         // 说明获取Token信息成功
         String json = EntityUtils.toString(post.getEntity());
@@ -42,13 +42,13 @@ public class OAuth2Controller {
         R r = memberFeignService.socialLogin(socialUser);
         if (r.getCode() != 0) {
             // 登录错误
-            return "redirect:http://msb.auth.com/login.html";
+            return "redirect:http://auth.msb.com/login.html";
         }
         String entityJson = (String) r.get("entity");
 
         System.out.println("---------------->" + entityJson);
 
         // 注册成功就需要调整到商城的首页
-        return "redirect:http://msb.mall.com/home";
+        return "redirect:http://mall.msb.com/home";
     }
 }

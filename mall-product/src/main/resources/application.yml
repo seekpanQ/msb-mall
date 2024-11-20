@@ -24,6 +24,10 @@ spring:
       time-to-live: 60000 # 指定缓存key的过期时间
       use-key-prefix: true
       cache-null-values: true # 是否缓存空值，防止缓存穿透
+  session:
+    store-type: redis
+    redis:
+      namespace: spring:session
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -34,3 +38,6 @@ mybatis-plus:
       logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
 server:
   port: 8040
+  servlet:
+    session:
+      timeout: 30m # session超时30分钟

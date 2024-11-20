@@ -94,7 +94,7 @@ public class LoginController {
                 R r = memberFeignService.register(userRegisterVo);
                 if (r.getCode() == 0) {
                     // 注册成功
-                    return "redirect:http://msb.auth.com/login.html";
+                    return "redirect:http://auth.msb.com/login.html";
                 } else {
                     // 注册失败
                     map.put("msg", r.getCode() + ":" + r.get("msg"));
@@ -116,10 +116,10 @@ public class LoginController {
         R r = memberFeignService.login(loginVo);
         if (r.getCode() == 0) {
             // 表示登录成功
-            return "redirect:http://msb.mall.com/home";
+            return "redirect:http://mall.msb.com/home";
         }
         session.setAttribute("errors", r.get("msg"));
         // 表示登录失败,重新跳转到登录页面
-        return "redirect:http://msb.auth.com/login.html";
+        return "redirect:http://auth.msb.com/login.html";
     }
 }

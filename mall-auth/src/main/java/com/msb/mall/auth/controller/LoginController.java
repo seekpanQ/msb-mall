@@ -1,8 +1,11 @@
 package com.msb.mall.auth.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.msb.common.constant.AuthConstant;
 import com.msb.common.constant.SMSConstant;
 import com.msb.common.exception.BizCodeEnum;
 import com.msb.common.utils.R;
+import com.msb.common.vo.MemberVO;
 import com.msb.mall.auth.feign.MemberFeignService;
 import com.msb.mall.auth.feign.ThirdPartyFeignService;
 import com.msb.mall.auth.vo.LoginVo;
@@ -115,6 +118,9 @@ public class LoginController {
     public String login(LoginVo loginVo, HttpSession session) {
         R r = memberFeignService.login(loginVo);
         if (r.getCode() == 0) {
+            String entityJson = (String) r.get("entity");
+            MemberVO memberVO = JSON.parseObject(entityJson, MemberVO.class);
+            session.setAttribute(AuthConstant.AUTH_SESSION_REDIS, memberVO);
             // 表示登录成功
             return "redirect:http://mall.msb.com/home";
         }

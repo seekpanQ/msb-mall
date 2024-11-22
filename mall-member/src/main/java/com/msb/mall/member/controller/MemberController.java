@@ -59,7 +59,7 @@ public class MemberController {
     public R login(@RequestBody MemberLoginVO vo) {
         MemberEntity entity = memberService.login(vo);
         if (entity != null) {
-            return R.ok();
+            return R.ok().put("entity", JSON.toJSONString(entity));
         }
         return R.error(BizCodeEnum.USERNAME_PHONE_VALID_EXCEPTION.getCode(),
                 BizCodeEnum.USERNAME_PHONE_VALID_EXCEPTION.getMsg());

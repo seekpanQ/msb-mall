@@ -54,6 +54,10 @@ spring:
           uri: lb://mall-auth
           predicates:
             - Host=auth.msb.com
+        - id: msbcart_host_route
+          uri: lb://mall-cart
+          predicates:
+            - Host=cart.msb.com
 # localhost:8070/app/captcha.jpg -->
 # localhost:8080/app/captcha.jpg localhost:8080/renren-fast/captcha.jpg
 #      default-filters:

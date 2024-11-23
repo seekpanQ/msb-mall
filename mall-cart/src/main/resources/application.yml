@@ -7,6 +7,11 @@ spring:
     name: mall-cart
   thymeleaf:
     cache: false
+  session:
+    store-type: redis
+    redis:
+      namespace: spring:session
+    timeout: 30m
   redis:
     host: 192.168.91.131
     port: 6379

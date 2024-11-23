@@ -7,6 +7,7 @@ import com.msb.common.vo.MemberVO;
 import com.msb.mall.cart.feign.ProductFeignService;
 import com.msb.mall.cart.interceptor.AuthInterceptor;
 import com.msb.mall.cart.service.ICartService;
+import com.msb.mall.cart.vo.Cart;
 import com.msb.mall.cart.vo.CartItem;
 import com.msb.mall.cart.vo.SkuInfoVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,9 @@ import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -76,6 +79,23 @@ public class CartServiceImpl implements ICartService {
         String json = JSON.toJSONString(item);
         hashOperations.put(skuId.toString(), json);
         return item;
+    }
+
+    @Override
+    public Cart getCartList() {
+        BoundHashOperations<String, Object, Object> operation = getCartKeyOperation();
+        Set<Object> keys = operation.keys();
+        Cart cart = new Cart();
+        List<CartItem> list = new ArrayList<>();
+        for (Object k : keys) {
+            String key = (String) k;
+            Object o = operation.get(key);
+            String json = (String) o;
+            CartItem item = JSON.parseObject(json, CartItem.class);
+            list.add(item);
+        }
+        cart.setItems(list);
+        return cart;
     }
 
     private BoundHashOperations<String, Object, Object> getCartKeyOperation() {

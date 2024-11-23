@@ -80,33 +80,36 @@
 				</div>
 
 				<div class="One_ShopCon">
-					<ul>
-						<li th:each="cartInfo:${cartList}">
+					<h1 th:if="${cart.items==null}">
+						购物车，空空如也....<a href="http://mall.msb.com/home">赶紧购物去吧</a>
+					</h1>
+					<ul th:if="${cart.items != null}">
+						<li th:each="item:${cart.items}">
 							<div> </div>
 
 							<div>
 								<ol>
-									<li><input type="checkbox" class="check" th:value="${cartInfo.skuId}" onchange="checkSku(this)" th:checked="(${cartInfo.isChecked}==1)?'true':'false'" /></li>
+									<li><input type="checkbox" class="check" th:checked="${item.check}"/></li>
 									<li>
-										<dt><img th:src="${cartInfo.imgUrl}" src="img\shop1.jpg" alt=""></dt>
-										<dd th:onclick="'toItem('+${cartInfo.skuId}+')'">
+										<dt><img th:src="${item.image}" alt=""></dt>
+										<dd>
 											<p>
-												<span th:text="${cartInfo.skuName}">TCL 55A950C 55英寸32核</span>
+												<span th:text="${item.title}">TCL 55A950C 55英寸32核</span>
 											</p>
 										</dd>
 									</li>
 									<li>
-										<p class="dj" th:text="'￥'+${cartInfo.skuPrice}">4599.00</p>
+										<p class="dj" th:text="'￥'+${item.price}">4599.00</p>
 									</li>
 									<li>
 										<p>
 											<span>-</span>
-											<span th:text="${cartInfo.skuNum}">5</span>
+											<span th:text="${item.count}">5</span>
 											<span>+</span>
 										</p>
 									</li>
 									<li style="font-weight:bold">
-										<p class="zj" th:text="'￥'+${cartInfo.totalPrice}">￥22995.00</p>
+										<p class="zj" th:text="'￥'+${item.getTotalPrice()}">￥22995.00</p>
 									</li>
 									<li>
 										<p>删除</p>

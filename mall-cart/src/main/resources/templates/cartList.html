@@ -23,8 +23,9 @@
 
 					</ul>
 					<ul class="header-right">
-						<li><a href="../登录页面\index.html" style="color: red;">你好，请登录</a></li>
-						<li><a href="../注册页面\index.html">免费注册</a></li>
+						<li th:if="${session.loginUser==null}"><a href="http://auth.msb.com/login.html" style="color: red;">你好，请登录</a></li>
+						<li th:if="${session.loginUser!=null}"><span style="color: red">[[${session.loginUser.nickname}]]</span></li>
+						<li><a href="http://auth.msb.com/reg.html">免费注册</a></li>
 						<li class="spacer"></li>
 						<li><a href="">我的订单</a></li>
 						<li class="spacer"></li>
@@ -177,7 +178,7 @@
 					</div>
 					<div>
 						<ol>
-							<li>总价:<span style="color:#e64346;font-weight:bold;font-size:16px;" class="fnt">￥0.00</span> </li>
+							<li>总价:<span style="color:#e64346;font-weight:bold;font-size:16px;" class="fnt">￥[[${cart.totalAmount}]]</span> </li>
 
 						</ol>
 					</div>
@@ -442,6 +443,7 @@
 				$(".One_ShopBottom>div:first-child span:first-child .allCheck").prop("checked", false)
 				// })
 			}
+			sumSumPrice();
 		})
 		$(".One_ShopFootBuy>div:first-child ul li:first-child .allCheck").click(function() {
 			if ($(".One_ShopFootBuy>div:first-child ul li:first-child .allCheck").is(":checked")) {
@@ -453,6 +455,7 @@
 				$(".check").prop("checked", false);
 				$(".One_ShopBottom>div:first-child span:first-child .allCheck").prop("checked", false)
 			}
+			sumSumPrice();
 		})
 		$(".One_ShopBottom>div:first-child span:first-child .allCheck").click(function() {
 			if ($(".One_ShopBottom>div:first-child span:first-child .allCheck").is(":checked")) {
@@ -462,6 +465,7 @@
 				$(".check").parent().parent().parent().css("background", "none");
 				$(".check").prop("checked", false);
 			}
+			sumSumPrice();
 		})
 		//如果子选择框没有选中则父选框取消全选
 		$(".check").click(function() {
@@ -470,6 +474,7 @@
 					$(".allCheck").prop("checked", false);
 				}
 			})
+			sumSumPrice();
 		})
 		//子选择框全部选中复选框也选中
 		$(".check").click(function() {
@@ -478,6 +483,7 @@
 			} else {
 				$(".allCheck").prop("checked", false)
 			}
+			sumSumPrice();
 		})
 		//删除已选的商品
 		$(".One_ShopFootBuy>div:first-child ul li:nth-child(2)").click(function() {

@@ -51,7 +51,7 @@ public class CartServiceImpl implements ICartService {
             String json = (String) o;
             CartItem item = JSON.parseObject(json, CartItem.class);
             item.setCount(item.getCount() + num);
-            hashOperations.put(skuId.toString(), item);
+            hashOperations.put(skuId.toString(), JSON.toJSONString(item));
             return item;
         }
 

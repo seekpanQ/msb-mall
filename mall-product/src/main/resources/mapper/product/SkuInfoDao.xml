@@ -3,7 +3,7 @@
 
 <mapper namespace="com.msb.mall.product.dao.SkuInfoDao">
 
-	<!-- 可根据自己的需求，是否要使用 -->
+    <!-- 可根据自己的需求，是否要使用 -->
     <resultMap type="com.msb.mall.product.entity.SkuInfoEntity" id="skuInfoMap">
         <result property="skuId" column="sku_id"/>
         <result property="spuId" column="spu_id"/>
@@ -17,6 +17,12 @@
         <result property="price" column="price"/>
         <result property="saleCount" column="sale_count"/>
     </resultMap>
+
+    <select id="getSkuSaleAttrs" resultType="java.lang.String">
+        SELECT CONCAT(attr_name, ":", attr_value)
+        FROM `pms_sku_sale_attr_value`
+        WHERE sku_id = #{skuId}
+    </select>
 
 
 </mapper>

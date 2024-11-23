@@ -37,6 +37,8 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
     private AttrGroupService attrGroupService;
     @Autowired
     private ThreadPoolExecutor threadPoolExecutor;
+    @Autowired
+    private SkuInfoDao skuInfoDao;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -151,6 +153,11 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
 
         CompletableFuture.allOf(saleFuture, spuFuture, groupFuture, imageFuture).join();
         return itemVO;
+    }
+
+    @Override
+    public List<String> getSkuSaleAttrs(Long skuId) {
+        return this.skuInfoDao.getSkuSaleAttrs(skuId);
     }
 
 }

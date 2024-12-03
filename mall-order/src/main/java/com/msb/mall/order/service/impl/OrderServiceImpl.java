@@ -1,16 +1,17 @@
 package com.msb.mall.order.service.impl;
 
-import org.springframework.stereotype.Service;
-import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.Query;
-
 import com.msb.mall.order.dao.OrderDao;
 import com.msb.mall.order.entity.OrderEntity;
 import com.msb.mall.order.service.OrderService;
+import com.msb.mall.order.vo.OrderConfirmVo;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 
 @Service("orderService")
@@ -24,6 +25,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public OrderConfirmVo confirmOrder() {
+        OrderConfirmVo vo = new OrderConfirmVo();
+
+
+        return null;
     }
 
 }

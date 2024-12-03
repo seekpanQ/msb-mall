@@ -1,4 +1,4 @@
-package com.msb.mall.cart.interceptor;
+package com.msb.mall.order.interceptor;
 
 import com.msb.common.constant.AuthConstant;
 import com.msb.common.vo.MemberVO;
@@ -32,6 +32,5 @@ public class AuthInterceptor implements HandlerInterceptor {
         session.setAttribute(AuthConstant.AUTH_SESSION_MSG, "请先登录");
         response.sendRedirect("http://auth.msb.com/login.html");
         return false;
-
     }
 }

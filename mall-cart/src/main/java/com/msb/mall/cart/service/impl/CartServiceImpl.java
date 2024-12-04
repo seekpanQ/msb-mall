@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 @Service
 public class CartServiceImpl implements ICartService {
@@ -96,6 +97,21 @@ public class CartServiceImpl implements ICartService {
         }
         cart.setItems(list);
         return cart;
+    }
+
+    @Override
+    public List<CartItem> getUserCartItems() {
+        BoundHashOperations<String, Object, Object> operations = getCartKeyOperation();
+        List<Object> values = operations.values();
+        List<CartItem> list = values.stream().map(item -> {
+                            String json = (String) item;
+                            CartItem cartItem = JSON.parseObject(json, CartItem.class);
+                            return cartItem;
+                        }
+                ).filter(cartItem -> cartItem.isCheck())
+                .collect(Collectors.toList());
+        return list;
+
     }
 
     private BoundHashOperations<String, Object, Object> getCartKeyOperation() {

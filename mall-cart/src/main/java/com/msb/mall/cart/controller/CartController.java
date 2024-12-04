@@ -8,12 +8,21 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
 
 @Controller
 public class CartController {
 
     @Autowired
     private ICartService cartService;
+
+    @GetMapping(value = "/getUserCartItems")
+    @ResponseBody
+    public List<CartItem> getUserCartItems() {
+        return cartService.getUserCartItems();
+    }
 
     /**
      * 加入购物车

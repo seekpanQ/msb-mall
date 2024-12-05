@@ -68,6 +68,7 @@ public class CartServiceImpl implements ICartService {
             item.setPrice(vo.getPrice());
             item.setSkuId(vo.getSkuId());
             item.setTitle(vo.getSkuTitle());
+            item.setSpuId(vo.getSpuId());
         }, executor);
 
         CompletableFuture<Void> future2 = CompletableFuture.runAsync(() -> {

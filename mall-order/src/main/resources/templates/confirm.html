@@ -738,7 +738,7 @@
 			<form action="http://order.msb.com/orderSubmit" method="post">
 				<input type="hidden" name="addrId" th:value="${confirmVo.address[0].getId()}">
 				<input type="hidden" name="orderToken" th:value="${confirmVo.orderToken}">
-				<button class="tijiao">提交订单</button>
+				<button type="submit" style="cursor: pointer" class="tijiao">提交订单</button>
 			</form>
 
 		</div>

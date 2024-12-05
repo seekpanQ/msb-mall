@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.msb.common.constant.OrderConstant;
+import com.msb.common.exception.NoStockExecption;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.Query;
+import com.msb.common.utils.R;
 import com.msb.common.vo.MemberVO;
 import com.msb.mall.order.dao.OrderDao;
 import com.msb.mall.order.dto.OrderCreateTO;
@@ -15,6 +17,7 @@ import com.msb.mall.order.entity.OrderItemEntity;
 import com.msb.mall.order.feign.CartFeginService;
 import com.msb.mall.order.feign.MemberFeginService;
 import com.msb.mall.order.feign.ProductService;
+import com.msb.mall.order.feign.WareFeignService;
 import com.msb.mall.order.interceptor.AuthInterceptor;
 import com.msb.mall.order.service.OrderItemService;
 import com.msb.mall.order.service.OrderService;
@@ -52,6 +55,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     private OrderService orderService;
     @Autowired
     private OrderItemService orderItemService;
+    @Autowired
+    private WareFeignService wareFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -133,11 +138,36 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         // 封装 WareSkuLockVO 对象
         lockWareSkuStock(responseVO, orderCreateTO);
 
-        responseVO.setCode(0);
         return responseVO;
     }
 
+    /**
+     * 锁定库存的方法
+     *
+     * @param responseVO
+     * @param orderCreateTO
+     */
     private void lockWareSkuStock(OrderResponseVO responseVO, OrderCreateTO orderCreateTO) {
+        WareSkuLockVO wareSkuLockVO = new WareSkuLockVO();
+        wareSkuLockVO.setOrderSN(orderCreateTO.getOrderEntity().getOrderSn());
+        List<OrderItemVo> orderItemVos = orderCreateTO.getOrderItemEntitys().stream().map(item -> {
+            OrderItemVo itemVo = new OrderItemVo();
+            itemVo.setSkuId(item.getSkuId());
+            itemVo.setTitle(item.getSkuName());
+            itemVo.setCount(item.getSkuQuantity());
+            return itemVo;
+        }).collect(Collectors.toList());
+        wareSkuLockVO.setItems(orderItemVos);
+        // 远程锁库存的操作
+        R r = wareFeignService.orderLockStock(wareSkuLockVO);
+        if (r.getCode() == 0) {
+            // 表示锁定库存成功
+            responseVO.setCode(0);
+        } else {
+            // 表示锁定库存失败
+            responseVO.setCode(2);// 表示库存不足，锁定失败
+            throw new NoStockExecption(1000l);
+        }
 
     }
 
@@ -171,9 +201,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         for (OrderItemEntity orderItemEntity : orderItemEntities) {
             BigDecimal total
                     = orderItemEntity.getSkuPrice().multiply(new BigDecimal(orderItemEntity.getSkuQuantity()));
-            totalAmount.add(total);
+            totalAmount = totalAmount.add(total);
         }
         orderEntity.setTotalAmount(totalAmount);
+        orderEntity.setPayAmount(totalAmount);
         createTO.setOrderItemEntitys(orderItemEntities);
         return createTO;
     }

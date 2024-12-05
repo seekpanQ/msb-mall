@@ -25,9 +25,9 @@
 					<ul class="header-right">
 						<li th:if="${session.loginUser==null}"><a href="http://auth.msb.com/login.html" style="color: red;">你好，请登录</a></li>
 						<li th:if="${session.loginUser!=null}"><span style="color: red">[[${session.loginUser.nickname}]]</span></li>
-						<li><a href="http://auth.msb.com/reg.html">免费注册</a></li>
+						<li th:if="${session.loginUser==null}"><a href="http://auth.msb.com/reg.html">免费注册</a></li>
 						<li class="spacer"></li>
-						<li><a href="">我的订单</a></li>
+						<li><a href="http://order.msb.com/toTrade">我的订单</a></li>
 						<li class="spacer"></li>
 
 					</ul>

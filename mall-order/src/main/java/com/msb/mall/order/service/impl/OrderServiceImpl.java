@@ -22,6 +22,7 @@ import com.msb.mall.order.interceptor.AuthInterceptor;
 import com.msb.mall.order.service.OrderItemService;
 import com.msb.mall.order.service.OrderService;
 import com.msb.mall.order.vo.*;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -109,6 +110,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return vo;
     }
 
+    /**
+     * seata分布式事务配置
+     * seata-server启动地址:
+     * E:\study\mashibing_fee\code\seata-server-1.3.0\seata\conf
+     *
+     * @param vo
+     * @return
+     */
+    @GlobalTransactional
     @Transactional
     @Override
     public OrderResponseVO submitOrder(OrderSubmitVO vo) {
@@ -139,6 +149,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         // 订单号  SKU_ID  SKU_NAME 商品数量
         // 封装 WareSkuLockVO 对象
         lockWareSkuStock(responseVO, orderCreateTO);
+
+//        int i = 1 / 0;
 
         return responseVO;
     }

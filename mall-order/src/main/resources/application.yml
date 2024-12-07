@@ -9,6 +9,9 @@ spring:
     nacos:
       discovery:
         server-addr: 192.168.91.131:8848
+    alibaba:
+      seata:
+        tx-service-group: mall-order-group
   application:
     name: mall-order
   session:

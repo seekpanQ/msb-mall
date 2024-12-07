@@ -21,6 +21,7 @@ import com.msb.mall.order.feign.WareFeignService;
 import com.msb.mall.order.interceptor.AuthInterceptor;
 import com.msb.mall.order.service.OrderItemService;
 import com.msb.mall.order.service.OrderService;
+import com.msb.mall.order.utils.OrderMsgProducer;
 import com.msb.mall.order.vo.*;
 import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.aop.framework.AopContext;
@@ -60,6 +61,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     private OrderItemService orderItemService;
     @Autowired
     private WareFeignService wareFeignService;
+    @Autowired
+    private OrderMsgProducer orderMsgProducer;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -149,9 +152,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         // 订单号  SKU_ID  SKU_NAME 商品数量
         // 封装 WareSkuLockVO 对象
         lockWareSkuStock(responseVO, orderCreateTO);
-
-//        int i = 1 / 0;
-
+        // int i = 1 / 0;
+        // 订单成功后需要给 消息中间件发送延迟30分钟的关单消息
+        orderMsgProducer.sendOrderMessage(orderCreateTO.getOrderEntity().getOrderSn());
         return responseVO;
     }
 

@@ -104,4 +104,15 @@ public class OrderController {
         return R.ok();
     }
 
+    /**
+     * 测试事务的传播特性
+     *
+     * @return
+     */
+    @GetMapping("/testPropagation")
+    public R testTranscationPropagation() {
+        orderService.testTranscationPropagation();
+        return R.ok();
+    }
+
 }

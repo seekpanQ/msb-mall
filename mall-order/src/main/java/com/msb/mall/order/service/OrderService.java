@@ -23,5 +23,7 @@ public interface OrderService extends IService<OrderEntity> {
     OrderConfirmVo confirmOrder();
 
     OrderResponseVO submitOrder(OrderSubmitVO vo);
+
+    void testTranscationPropagation();
 }
 

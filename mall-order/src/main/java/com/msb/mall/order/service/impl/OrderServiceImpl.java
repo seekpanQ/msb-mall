@@ -22,10 +22,12 @@ import com.msb.mall.order.interceptor.AuthInterceptor;
 import com.msb.mall.order.service.OrderItemService;
 import com.msb.mall.order.service.OrderService;
 import com.msb.mall.order.vo.*;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
@@ -139,6 +141,37 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         lockWareSkuStock(responseVO, orderCreateTO);
 
         return responseVO;
+    }
+
+    /**
+     * 在service中调用自身的其他事务方法的时候，事务的传播行为会失效
+     * 因为会绕过代理对象的处理
+     * 测试事务bc失效的问题
+     */
+    @Transactional
+    @Override
+    public void testTranscationPropagation() {
+        OrderServiceImpl o = (OrderServiceImpl) AopContext.currentProxy();
+        o.b();
+        o.c();
+
+        int a = 1 / 0;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void b() {
+        OrderEntity entity = new OrderEntity();
+        entity.setId(9l);
+        entity.setTotalAmount(new BigDecimal(1000));
+        this.updateById(entity);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void c() {
+        OrderEntity entity = new OrderEntity();
+        entity.setId(10l);
+        entity.setStatus(2);
+        this.updateById(entity);
     }
 
     /**

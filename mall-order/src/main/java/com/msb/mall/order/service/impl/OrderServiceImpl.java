@@ -188,6 +188,29 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return payVo;
     }
 
+    @Override
+    public void handleOrderComplete(String orderSn) {
+        // 1.更新订单状态
+        this.updateOrderStatus(orderSn, OrderConstant.OrderStateEnum.TO_SEND_GOODS.getCode());
+        // TODO
+        // 2.更新库存信息 库存数量递减
+
+        // 3.购物车中的已经支付的商品移除
+
+        // 4.更新会员积分 ....
+    }
+
+    /**
+     * 更新订单的状态信息
+     *
+     * @param orderSn
+     * @param status
+     */
+    @Override
+    public void updateOrderStatus(String orderSn, Integer status) {
+        this.getBaseMapper().updateOrderStatus(orderSn, status);
+    }
+
     @Transactional(propagation = Propagation.REQUIRED)
     public void b() {
         OrderEntity entity = new OrderEntity();

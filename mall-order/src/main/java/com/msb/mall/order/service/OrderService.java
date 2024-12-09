@@ -28,5 +28,9 @@ public interface OrderService extends IService<OrderEntity> {
     void testTranscationPropagation();
 
     PayVo getOrderPay(String orderSn);
+
+    void handleOrderComplete(String orderSn);
+
+    void updateOrderStatus(String orderSn, Integer status);
 }
 

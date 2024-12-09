@@ -7,6 +7,7 @@ import com.msb.mall.order.vo.OrderConfirmVo;
 import com.msb.mall.order.vo.OrderResponseVO;
 import com.msb.mall.order.vo.OrderSubmitVO;
 import com.msb.mall.order.vo.PayVo;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -56,6 +57,19 @@ public class OrderWebController {
             redirectAttributes.addFlashAttribute("msg", msg);
             return "redirect:http://order.msb.com/toTrade";
         }
+    }
+
+    @GetMapping("/orderPay/returnUrl")
+    public String orderPay(@RequestParam(value = "orderSn", required = false) String orderSn
+            , @RequestParam(value = "out_trade_no", required = false) String out_trade_no) {
+        // TODO 完成相关的支付操作
+        System.out.println("orderSn = " + orderSn);
+        if (StringUtils.isNotBlank(orderSn)) {
+            orderService.handleOrderComplete(orderSn);
+        } else {
+            orderService.handleOrderComplete(out_trade_no);
+        }
+        return "list";
     }
 
     /**

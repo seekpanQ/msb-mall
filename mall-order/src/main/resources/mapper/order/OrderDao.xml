@@ -55,5 +55,10 @@
         WHERE order_sn = #{orderSn}
     </select>
 
+    <update id="updateOrderStatus">
+        UPDATE `oms_order`
+        SET STATUS=#{status}
+        WHERE order_sn = #{orderSn}
+    </update>
 
 </mapper>

@@ -36,6 +36,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -171,6 +172,20 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         o.c();
 
         int a = 1 / 0;
+    }
+
+    @Override
+    public PayVo getOrderPay(String orderSn) {
+        // 根据订单号查询相关的订单信息
+        OrderEntity orderEntity = this.getBaseMapper().getOrderByOrderSn(orderSn);
+        // 通过订单信息封装 PayVO对象
+        PayVo payVo = new PayVo();
+        payVo.setOut_trader_no(orderSn);
+        payVo.setTotal_amount(orderEntity.getTotalAmount().setScale(2, RoundingMode.UP).toString());
+        // 订单名称和订单描述
+        payVo.setSubject(orderEntity.getOrderSn());
+        payVo.setBody(orderEntity.getOrderSn());
+        return payVo;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

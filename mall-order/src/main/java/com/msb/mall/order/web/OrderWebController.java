@@ -1,21 +1,27 @@
 package com.msb.mall.order.web;
 
 import com.msb.common.exception.NoStockExecption;
+import com.msb.mall.order.config.AlipayTemplate;
 import com.msb.mall.order.service.OrderService;
 import com.msb.mall.order.vo.OrderConfirmVo;
 import com.msb.mall.order.vo.OrderResponseVO;
 import com.msb.mall.order.vo.OrderSubmitVO;
+import com.msb.mall.order.vo.PayVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class OrderWebController {
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private AlipayTemplate alipayTemplate;
 
     @GetMapping("/toTrade")
     public String toTrade(Model model) {
@@ -50,6 +56,22 @@ public class OrderWebController {
             redirectAttributes.addFlashAttribute("msg", msg);
             return "redirect:http://order.msb.com/toTrade";
         }
+    }
+
+    /**
+     * 获取订单相关信息
+     * 然后跳转到支付页面  tklalf8880@sandbox.com
+     *
+     * @param orderSn
+     * @return
+     */
+    @GetMapping(value = "/payOrder", produces = "text/html")
+    @ResponseBody
+    public String payOrder(@RequestParam("orderSn") String orderSn) {
+        // 根据订单编号查询出相关的订单信息，封装到PayVO中
+        PayVo payVo = orderService.getOrderPay(orderSn);
+        String pay = alipayTemplate.pay(payVo);
+        return pay;
     }
 
 

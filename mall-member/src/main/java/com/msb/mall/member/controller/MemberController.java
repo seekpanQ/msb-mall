@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.msb.common.exception.BizCodeEnum;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
+import com.msb.common.vo.MemberVO;
 import com.msb.mall.member.entity.MemberEntity;
 import com.msb.mall.member.exception.PhoneExsitExecption;
 import com.msb.mall.member.exception.UsernameExsitException;
@@ -11,6 +12,7 @@ import com.msb.mall.member.service.MemberService;
 import com.msb.mall.member.vo.MemberLoginVO;
 import com.msb.mall.member.vo.MemberReigerVO;
 import com.msb.mall.member.vo.SocialUser;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -119,6 +121,17 @@ public class MemberController {
     public R update(@RequestBody MemberEntity member) {
         memberService.updateById(member);
 
+        return R.ok();
+    }
+
+    /**
+     * 修改会员积分和成长值
+     */
+    @RequestMapping("/updateIntegrationGrowth")
+    public R update(@RequestBody MemberVO memberVO) {
+        MemberEntity memberEntity = new MemberEntity();
+        BeanUtils.copyProperties(memberVO, memberEntity);
+        memberService.updateIntegrationGrowth(memberEntity);
         return R.ok();
     }
 

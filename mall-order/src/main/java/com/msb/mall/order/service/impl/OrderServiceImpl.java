@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.msb.common.constant.CartConstant;
 import com.msb.common.constant.OrderConstant;
 import com.msb.common.exception.NoStockExecption;
 import com.msb.common.utils.PageUtils;
@@ -25,6 +26,7 @@ import com.msb.mall.order.utils.OrderMsgProducer;
 import com.msb.mall.order.vo.*;
 import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -188,16 +190,79 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return payVo;
     }
 
+    @GlobalTransactional
     @Override
     public void handleOrderComplete(String orderSn) {
         // 1.更新订单状态
         this.updateOrderStatus(orderSn, OrderConstant.OrderStateEnum.TO_SEND_GOODS.getCode());
-        // TODO
+
         // 2.更新库存信息 库存数量递减
+        this.updateWareSku(orderSn);
 
         // 3.购物车中的已经支付的商品移除
+        this.removePayedCartList(orderSn);
 
         // 4.更新会员积分 ....
+        this.updateMemberIntegrationGrowth(orderSn);
+    }
+
+    /**
+     * 更新会员积分和成长值
+     *
+     * @param orderSn
+     */
+    private void updateMemberIntegrationGrowth(String orderSn) {
+        List<OrderItemEntity> orderItemEntities
+                = orderItemService.list(new QueryWrapper<OrderItemEntity>().eq("order_sn", orderSn));
+        MemberVO memberVO = AuthInterceptor.threadLocal.get();
+        Integer integration = 0;
+        Integer growth = 0;
+        for (OrderItemEntity orderItemEntity : orderItemEntities) {
+            Integer giftIntegration = orderItemEntity.getGiftIntegration();
+            Integer skuQuantity = orderItemEntity.getSkuQuantity();
+            integration = integration + (giftIntegration * skuQuantity);
+            Integer giftGrowth = orderItemEntity.getGiftGrowth();
+            growth = growth + (giftGrowth * skuQuantity);
+        }
+        memberVO.setIntegration(integration);
+        memberVO.setGrowth(growth);
+        memberFeginService.updateIntegrationGrowth(memberVO);
+    }
+
+    /**
+     * 购物车中的已经支付的商品移除
+     *
+     * @param orderSn
+     */
+    private void removePayedCartList(String orderSn) {
+        List<OrderItemEntity> orderItemEntities
+                = orderItemService.list(new QueryWrapper<OrderItemEntity>().eq("order_sn", orderSn));
+        MemberVO memberVO = AuthInterceptor.threadLocal.get();
+        String cartKey = CartConstant.CART_PERFIX + memberVO.getId();
+        for (OrderItemEntity orderItemEntity : orderItemEntities) {
+            Long skuId = orderItemEntity.getSkuId();
+            redisTemplate.boundHashOps(cartKey).delete(String.valueOf(skuId));
+        }
+    }
+
+    private void updateWareSku(String orderSn) {
+        List<OrderItemEntity> orderItemEntities
+                = orderItemService.list(new QueryWrapper<OrderItemEntity>().eq("order_sn", orderSn));
+        List<OrderItemVo> orderItemVos = orderItemEntities.stream().map(item -> {
+            OrderItemVo orderItemVo = new OrderItemVo();
+            BeanUtils.copyProperties(item, orderItemVo);
+            orderItemVo.setImage(item.getSkuPic());
+            orderItemVo.setTitle(item.getSkuName());
+            orderItemVo.setCount(item.getSkuQuantity());
+            orderItemVo.setPrice(item.getSkuPrice());
+            orderItemVo.setTotalPrice(item.getSkuPrice().multiply(new BigDecimal(item.getSkuQuantity())));
+            return orderItemVo;
+        }).collect(Collectors.toList());
+        WareSkuLockVO wareSkuLockVO = new WareSkuLockVO();
+        wareSkuLockVO.setOrderSN(orderSn);
+        wareSkuLockVO.setItems(orderItemVos);
+        // 远程释放库存的操作
+        R r = wareFeignService.orderReleaseStock(wareSkuLockVO);
     }
 
     /**

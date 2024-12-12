@@ -29,6 +29,12 @@ public class WareSkuController {
     @Autowired
     private WareSkuService wareSkuService;
 
+    /**
+     * 锁定库存
+     *
+     * @param vo
+     * @return
+     */
     @PostMapping("/lock/order")
     public R orderLockStock(@RequestBody WareSkuLockVO vo) {
         try {
@@ -36,6 +42,23 @@ public class WareSkuController {
         } catch (NoStockExecption e) {
             // 表示锁定库存失败
             return R.error(BizCodeEnum.NO_STOCK_EXCEPTION.getCode(), BizCodeEnum.NO_STOCK_EXCEPTION.getMsg());
+        }
+        return R.ok();
+    }
+
+    /**
+     * 释放锁定的库存
+     *
+     * @param vo
+     * @return
+     */
+    @PostMapping("/release/order")
+    public R orderReleaseStock(@RequestBody WareSkuLockVO vo) {
+        try {
+            Boolean flag = wareSkuService.orderReleaseStock(vo);
+        } catch (NoStockExecption e) {
+            // 表示释放库存失败
+            return R.error(BizCodeEnum.RELEASE_STOCK_EXCEPTION.getCode(), BizCodeEnum.RELEASE_STOCK_EXCEPTION.getMsg());
         }
         return R.ok();
     }

@@ -141,6 +141,16 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         return entity;
     }
 
+    @Override
+    public void updateIntegrationGrowth(MemberEntity memberEntity) {
+        MemberEntity member = this.getById(memberEntity.getId());
+        Integer currentIntegration = member.getIntegration();
+        Integer currentGrowth = member.getGrowth();
+        member.setIntegration(currentIntegration + memberEntity.getIntegration());
+        member.setGrowth(currentGrowth + memberEntity.getGrowth());
+        this.updateById(member);
+    }
+
     /**
      * 校验手机号是否存在
      *

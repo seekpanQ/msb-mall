@@ -33,6 +33,13 @@
           AND stock - stock_locked > 0
     </select>
 
+    <select id="listLockedStock" resultMap="wareSkuMap">
+        SELECT *
+        FROM `wms_ware_sku`
+        WHERE sku_id = #{skuId}
+          AND stock_locked > 0
+    </select>
+
     <update id="lockSkuStock">
         UPDATE `wms_ware_sku`
         SET stock_locked = stock_locked + #{count}
@@ -40,5 +47,12 @@
           AND ware_id = #{wareId}
     </update>
 
+    <update id="releaseSkuStock">
+        UPDATE `wms_ware_sku`
+        SET stock_locked = stock_locked - #{count},
+            stock        = stock - #{count}
+        WHERE sku_id = #{skuId}
+          AND ware_id = #{wareId}
+    </update>
 
 </mapper>

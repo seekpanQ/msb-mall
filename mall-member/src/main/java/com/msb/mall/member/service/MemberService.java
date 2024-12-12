@@ -27,5 +27,7 @@ public interface MemberService extends IService<MemberEntity> {
     MemberEntity login(MemberLoginVO vo);
 
     MemberEntity login(SocialUser vo);
+
+    void updateIntegrationGrowth(MemberEntity memberEntity);
 }
 

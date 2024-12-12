@@ -164,6 +164,52 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
         return true;
     }
 
+    /**
+     * 释放库存的操作
+     *
+     * @param vo
+     * @return
+     */
+    @Transactional
+    @Override
+    public Boolean orderReleaseStock(WareSkuLockVO vo) {
+        List<OrderItemVo> items = vo.getItems();
+        // 首先找到具有库存的仓库
+        List<SkuWareHasStock> list = items.stream().map(item -> {
+            SkuWareHasStock skuWareHasStock = new SkuWareHasStock();
+            skuWareHasStock.setSkuId(item.getSkuId());
+            List<WareSkuEntity> wareSkuEntities = this.baseMapper.listLockedStock(item.getSkuId());
+            skuWareHasStock.setWareSkuEntities(wareSkuEntities);
+            skuWareHasStock.setNum(item.getCount());
+            return skuWareHasStock;
+        }).collect(Collectors.toList());
+
+        // 释放库存
+        for (SkuWareHasStock skuWareHasStock : list) {
+            Long skuId = skuWareHasStock.getSkuId();
+            // 当前需要释放的商品的数量
+            Integer count = skuWareHasStock.getNum();
+            List<WareSkuEntity> wareSkuEntities = skuWareHasStock.getWareSkuEntities();
+            for (WareSkuEntity wareSkuEntity : wareSkuEntities) {
+                if (count <= 0) {
+                    // 表示所有的商品都释放了
+                    break;
+                }
+                Integer stockLocked = wareSkuEntity.getStockLocked();
+                if (stockLocked >= count) {
+                    // 表示当前需要释放的库存数量小于等于锁定的库存数量
+                    Integer integer = this.baseMapper.releaseSkuStock(skuId, wareSkuEntity.getWareId(), count);
+                    count = 0;
+                } else {
+                    // 需要释放的库存数量大于当前锁定的库存数量
+                    Integer integer = this.baseMapper.releaseSkuStock(skuId, wareSkuEntity.getWareId(), stockLocked);
+                    count = count - stockLocked;
+                }
+            }
+        }
+        return true;
+    }
+
     @Data
     class SkuWareHasStock {
         private Long skuId;

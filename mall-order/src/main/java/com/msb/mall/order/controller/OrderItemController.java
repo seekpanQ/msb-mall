@@ -1,7 +1,9 @@
 package com.msb.mall.order.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.R;
+import com.msb.mall.order.entity.OrderDetailEntity;
 import com.msb.mall.order.entity.OrderItemEntity;
 import com.msb.mall.order.service.OrderItemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +39,7 @@ public class OrderItemController {
 
     @RequestMapping("/getUserPage")
     public R getUserPage(@RequestParam Map<String, Object> params) {
-        PageUtils page = orderItemService.getUserPage(params);
+        IPage<OrderDetailEntity> page = orderItemService.getUserPage(params);
 
         return R.ok().put("page", page);
     }

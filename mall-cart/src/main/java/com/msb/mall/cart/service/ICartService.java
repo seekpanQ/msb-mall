@@ -2,6 +2,7 @@ package com.msb.mall.cart.service;
 
 import com.msb.mall.cart.vo.Cart;
 import com.msb.mall.cart.vo.CartItem;
+import com.msb.mall.cart.vo.CheckCartVo;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -15,4 +16,6 @@ public interface ICartService {
     Cart getCartList();
 
     List<CartItem> getUserCartItems();
+
+    void checkCart(CheckCartVo[] checkCartVos);
 }

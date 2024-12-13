@@ -446,6 +446,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         orderEntity.setReceiverPhone(memberAddressVo.getPhone());
         orderEntity.setReceiverPostCode(memberAddressVo.getPostCode());
         orderEntity.setReceiverRegion(memberAddressVo.getRegion());
+        orderEntity.setCreateTime(new Date());
         // 订单总额
         // 设置订单的状态
         orderEntity.setStatus(OrderConstant.OrderStateEnum.FOR_THE_PAYMENT.getCode());

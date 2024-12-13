@@ -9,6 +9,7 @@ import com.msb.mall.cart.interceptor.AuthInterceptor;
 import com.msb.mall.cart.service.ICartService;
 import com.msb.mall.cart.vo.Cart;
 import com.msb.mall.cart.vo.CartItem;
+import com.msb.mall.cart.vo.CheckCartVo;
 import com.msb.mall.cart.vo.SkuInfoVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
@@ -113,6 +114,23 @@ public class CartServiceImpl implements ICartService {
                 .collect(Collectors.toList());
         return list;
 
+    }
+
+    @Override
+    public void checkCart(CheckCartVo[] checkCartVos) {
+        BoundHashOperations<String, Object, Object> hashOperations = getCartKeyOperation();
+        for (CheckCartVo checkCartVo : checkCartVos) {
+            Long skuId = checkCartVo.getSkuId();
+            Object o = hashOperations.get(skuId.toString());
+            // 如果Redis存储在商品的信息，那么我们只需要修改商品的属性就可以了
+            if (o != null) {
+                // 说明已经存在了这个商品那么修改商品的属性即可
+                String json = (String) o;
+                CartItem item = JSON.parseObject(json, CartItem.class);
+                item.setCheck("1".equals(checkCartVo.getIsChecked()) ? true : false);
+                hashOperations.put(skuId.toString(), JSON.toJSONString(item));
+            }
+        }
     }
 
     private BoundHashOperations<String, Object, Object> getCartKeyOperation() {

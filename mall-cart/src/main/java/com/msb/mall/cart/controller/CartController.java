@@ -3,12 +3,11 @@ package com.msb.mall.cart.controller;
 import com.msb.mall.cart.service.ICartService;
 import com.msb.mall.cart.vo.Cart;
 import com.msb.mall.cart.vo.CartItem;
+import com.msb.mall.cart.vo.CheckCartVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -40,6 +39,17 @@ public class CartController {
         }
         model.addAttribute("item", item);
         return "success";
+    }
+
+    /**
+     * 购物车选中或取消选中
+     *
+     * @return
+     */
+    @PostMapping(value = "/checkCart")
+    public String checkCart(@RequestBody CheckCartVo[] checkCartVos) {
+        cartService.checkCart(checkCartVos);
+        return "redirect:http://cart.msb.com/cart_list";
     }
 
     @GetMapping("/cart_list")

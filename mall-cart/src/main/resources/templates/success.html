@@ -29,12 +29,12 @@
         <a href="http://auth.msb.com/login.html" class="link_login">
             [[${session.loginUser!=null?session.loginUser.nickname:'你好,请登录'}]]
         </a>&nbsp;
-        <a href="http://auth.msb.com/reg.html" class="link_regist">免费注册</a>
+        <a th:if="${session.loginUser==null}" href="http://auth.msb.com/reg.html" class="link_regist">免费注册</a>
         </li>
         <li class="spacer"></li>
 
         <li>
-        <a href="/javascript:;">我的订单</a>
+        <a href="http://order.msb.com/toTrade">我的订单</a>
         </li>
 
 

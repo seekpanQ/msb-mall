@@ -683,7 +683,7 @@
         $.get("/order/orderitem/getUserPage", function (data) {
             console.log(data);
             if (data && data.code === 0) {
-                var orderList = data.page.list;
+                var orderList = data.page.records;
                 var innerHtml = "";
                 for (var i = 0; i < orderList.length; i++) {
                     var totalPrice = new Number(orderList[i].skuQuantity*orderList[i].skuPrice);
@@ -691,7 +691,7 @@
                     +'<table class="table">                                                                                             '
                     +'	<tr>                                                                                                            '
                     +'		<td colspan="7" style="background:#F7F7F7">                                                                 '
-                    +'			<span style="color:#AAAAAA">2017-12-09 20:50:10</span>                                                  '
+                    +'			<span style="color:#AAAAAA">'+orderList[i].createTime+'</span>                                                  '
                     +'			<span><ruby style="color:#AAAAAA">订单号:</ruby>'+orderList[i].orderSn+'</span>'
                     +'			<span>慕熙威尔官方旗舰店<i class="table_i"></i></span>                                                  '
                     +'			<i class="table_i5 isShow"></i>                                                                         '
@@ -701,13 +701,13 @@
                     +'		<td colspan="3">                                                                                            '
                     +'<img style="width: 60px;height: 60px;" src="'+orderList[i].skuPic+'" alt="" class="img">'
                     +'			<div>                                                                                                   '
-                    +'<p>'+orderList[0].skuName+'</p>'
+                    +'<p>'+orderList[i].skuName+'</p>'
                     +'				<div><i class="table_i4"></i>找搭配</div>                                                           '
                     +'			</div>                                                                                                  '
                     +'<div style="margin-left:15px;">x'+orderList[i].skuQuantity+'</div>'
                     +'			<div style="clear:both"></div>                                                                          '
                     +'		</td>                                                                                                       '
-                    +'		<td>张三<i><i class="table_i1"></i></i></td>                                                                '
+                    +'<td>'+orderList[i].receiverName+'<i><i class="table_i1"></i></i></td>'
                     +'		<td style="padding-left:10px;color:#AAAAB1;">                                                               '
                     +'<p style="margin-bottom:5px;">总额 ￥'+totalPrice.toFixed(2)+'</p>'
                     +'			<hr style="width:90%;">                                                                                 '
@@ -755,7 +755,7 @@
 
                 }
                 $("#orderListDetail").html(innerHtml);
-                $(".current-page").text(data.page.currPage);
+                $(".current-page").text(data.page.current);
             }
 
         });

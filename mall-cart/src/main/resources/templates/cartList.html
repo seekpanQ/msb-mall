@@ -53,7 +53,7 @@
 						<input type="button" value="搜索" class="one_right_btn">
 					</div>
 				</div>
-				<div class="one_search_load" th:if="${userId}==null">
+				<div class="one_search_load" th:if="${session.loginUser}==null">
 					<img src="/static/cart/img/shop_07.jpg" class="one_load_wraing">
 					<span>您还没有登录！登录后购物车的商品将保存到您账号中</span>
 					<a href="#"><input type="button" onclick="login()" value="立即登录" class="one_load_btn"></a>
@@ -90,7 +90,7 @@
 
 							<div>
 								<ol>
-									<li><input type="checkbox" class="check" th:checked="${item.check}"/></li>
+									<li><input th:value="${item.skuId}" onchange="checkSku(this)" type="checkbox" class="check" th:checked="${item.check}"/></li>
 									<li>
 										<dt><img th:src="${item.image}" alt=""></dt>
 										<dd>
@@ -269,15 +269,27 @@
 			if (checked) {
 				isCheckedFlag = "1";
 			}
-			var param = "isChecked=" + isCheckedFlag + "&" + "skuId=" + skuId;
-			$.post("checkCart", param, function(data) {
-				sumSumPrice();
+			var param=[{
+				"isChecked":isCheckedFlag,
+				"skuId":skuId
+			}];
+			console.log(param);
+			$.ajax({
+				url:"checkCart",
+				type:"POST",
+				data:JSON.stringify(param),
+				contentType:"application/json",
+				success: function (data){
+					console.log(data);
+				},
+				error: function (error){
+					console.log(error);
+				}
 			});
-
 		}
 
 		//封装总价钱函数
-		function sumSumPrice() {
+		// function sumSumPrice() {
 			//         var zzj=0;
 			//         $(".check").each(function () {
 			//             if($(this).prop("checked")){
@@ -286,7 +298,7 @@
 			//             }
 			//             $(".fnt").html("￥"+zzj+".00")
 			//         });
-		}
+		// }
 
 		/*    //购物车结算固定定位
 		    $(document).scroll(function(){
@@ -444,6 +456,7 @@
 				// })
 			}
 			sumSumPrice();
+			$(".check").change();
 		})
 		$(".One_ShopFootBuy>div:first-child ul li:first-child .allCheck").click(function() {
 			if ($(".One_ShopFootBuy>div:first-child ul li:first-child .allCheck").is(":checked")) {
@@ -456,6 +469,7 @@
 				$(".One_ShopBottom>div:first-child span:first-child .allCheck").prop("checked", false)
 			}
 			sumSumPrice();
+			$(".check").change();
 		})
 		$(".One_ShopBottom>div:first-child span:first-child .allCheck").click(function() {
 			if ($(".One_ShopBottom>div:first-child span:first-child .allCheck").is(":checked")) {

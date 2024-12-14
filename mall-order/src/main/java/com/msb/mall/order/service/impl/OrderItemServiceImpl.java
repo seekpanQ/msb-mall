@@ -37,7 +37,15 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemDao, OrderItemEnt
     public IPage<OrderDetailEntity> getUserPage(Map<String, Object> params) {
         MemberVO memberVO = AuthInterceptor.threadLocal.get();
         Long id = memberVO.getId();
+        String size = (String) params.get("size");
+        String current = (String) params.get("current");
         IPage<OrderDetailEntity> page = new Page<>();
+        if (size != null) {
+            page.setSize(Long.valueOf(size));
+        }
+        if (current != null) {
+            page.setCurrent(Long.valueOf(current));
+        }
         IPage<OrderDetailEntity> result = orderItemDao.getUserOrderList(page, id);
         return result;
     }

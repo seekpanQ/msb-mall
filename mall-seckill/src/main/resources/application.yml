@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.91.131:8848
+  application:
+    name: mall-seckill
+  redis:
+    host: 192.168.91.131
+    port: 6379
+  session:
+    store-type: redis
+    redis:
+      namespace: spring:redis
+  thymeleaf:
+    cache: false
+server:
+  port: 9030

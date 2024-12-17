@@ -1,15 +1,21 @@
 package com.msb.mall.seckill.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.msb.common.constant.OrderConstant;
 import com.msb.common.constant.SeckillConstant;
+import com.msb.common.dto.SeckillOrderDto;
 import com.msb.common.utils.R;
+import com.msb.common.vo.MemberVO;
 import com.msb.mall.seckill.dto.SeckillSkuRedisDto;
 import com.msb.mall.seckill.feign.CouponFeignService;
 import com.msb.mall.seckill.feign.ProductFeignService;
+import com.msb.mall.seckill.interceptor.AuthInterceptor;
 import com.msb.mall.seckill.service.SeckillService;
 import com.msb.mall.seckill.vo.SeckillSessionEntity;
 import com.msb.mall.seckill.vo.SkuInfoVo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.redisson.api.RSemaphore;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
@@ -22,6 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -36,6 +43,8 @@ public class SeckillServiceImpl implements SeckillService {
     private RedissonClient redissonClient;
     @Autowired
     private ProductFeignService productFeignService;
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
 
     @Override
     public void uploadSeckillSku3Days() {
@@ -123,6 +132,79 @@ public class SeckillServiceImpl implements SeckillService {
     }
 
     /**
+     * 实现秒杀逻辑
+     *
+     * @param killId
+     * @param code
+     * @param num
+     * @return
+     */
+    @Override
+    public String kill(String killId, String code, Integer num) {
+        // 1.根据killId获取当前秒杀的商品的信息  Redis中
+        BoundHashOperations<String, String, String> ops = redisTemplate.boundHashOps(SeckillConstant.SKU_CHACE_PREFIX);
+        String json = ops.get(killId);
+        if (StringUtils.isNotBlank(json)) {
+            SeckillSkuRedisDto dto = JSON.parseObject(json, SeckillSkuRedisDto.class);
+            // 校验合法性  1.校验时效性
+            Long startTime = dto.getStartTime();
+            Long endTime = dto.getEndTime();
+            long now = new Date().getTime();
+            if (now > startTime && now < endTime) {
+                // 说明是在秒杀活动时间范围内容的请求
+                // 2.校验 随机和商品 是否合法
+                String randCode = dto.getRandCode();
+                String redisKillId = dto.getPromotionSessionId() + "_" + dto.getSkuId();
+                if (randCode.equals(code) && killId.equals(redisKillId)) {
+                    // 随机码校验合法
+                    // 3.判断抢购商品数量是否合法
+                    if (num <= dto.getSeckillLimit().intValue()) {
+                        // 满足限购的条件
+                        // 4.判断是否满足 幂等性
+                        // 只要抢购成功我们就在Redis中 存储一条信息 userId + sessionID + skuId
+                        MemberVO memberVO = (MemberVO) AuthInterceptor.threadLocal.get();
+                        Long id = memberVO.getId();
+                        String redisKey = id + "_" + redisKillId;
+                        Boolean aBoolean = redisTemplate.opsForValue()
+                                .setIfAbsent(redisKey, num.toString(), (endTime - now), TimeUnit.MILLISECONDS);
+                        if (aBoolean) {
+                            // 表示数据插入成功 是第一次操作
+                            RSemaphore semaphore = redissonClient.getSemaphore(SeckillConstant.SKU_STOCK_SEMAPHORE + randCode);
+                            try {
+                                boolean b = semaphore.tryAcquire(num, 100, TimeUnit.MILLISECONDS);
+                                if (b) {
+                                    // 表示秒杀成功
+                                    // 表示秒杀成功
+                                    String orderSN = UUID.randomUUID().toString().replace("-", "");
+                                    // 继续完成快速下订单操作  --> RocketMQ
+                                    SeckillOrderDto orderDto = new SeckillOrderDto();
+                                    orderDto.setOrderSN(orderSN);
+                                    orderDto.setSkuId(dto.getSkuId());
+                                    orderDto.setSeckillPrice(dto.getSeckillPrice());
+                                    orderDto.setMemberId(id);
+                                    orderDto.setNum(num);
+                                    orderDto.setPromotionSessionId(dto.getPromotionSessionId());
+                                    // 通过RocketMQ 发送异步消息
+                                    rocketMQTemplate.sendOneWay(OrderConstant.ROCKETMQ_SECKILL_ORDER_TOPIC, JSON.toJSONString(orderDto));
+                                    return orderSN;
+                                }
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+
+                    }
+
+                }
+            }
+
+        }
+
+        return null;
+
+    }
+
+    /**
      * 存储活动对应的 SKU信息
      *
      * @param seckillSessionEntities
@@ -130,11 +212,11 @@ public class SeckillServiceImpl implements SeckillService {
     private void saveSessionSkuInfos(List<SeckillSessionEntity> seckillSessionEntities) {
         seckillSessionEntities.stream().forEach(session -> {
                     // 循环取出每个Session，然后取出对应SkuID 封装相关的信息
-                    BoundHashOperations<String, Object, Object> hashOperations
+                    BoundHashOperations<String, Object, Object> hashOps
                             = redisTemplate.boundHashOps(SeckillConstant.SKU_CHACE_PREFIX);
                     session.getRelationEntities().stream().forEach(item -> {
                         String skuKey = item.getPromotionSessionId() + "_" + item.getSkuId();
-                        Boolean flag = redisTemplate.hasKey(skuKey);
+                        Boolean flag = hashOps.hasKey(skuKey);
                         if (!flag) {
                             SeckillSkuRedisDto dto = new SeckillSkuRedisDto();
                             // 1.获取SKU的基本信息
@@ -158,7 +240,7 @@ public class SeckillServiceImpl implements SeckillService {
                                     = redissonClient.getSemaphore(SeckillConstant.SKU_STOCK_SEMAPHORE + token);
                             // 分布式信号量的处理  限流的目的
                             semaphore.trySetPermits(item.getSeckillLimit().intValue());
-                            hashOperations.put(skuKey, JSON.toJSONString(dto));
+                            hashOps.put(skuKey, JSON.toJSONString(dto));
                         }
                     });
                 }

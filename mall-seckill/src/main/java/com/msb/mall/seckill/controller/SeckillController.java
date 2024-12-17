@@ -6,6 +6,7 @@ import com.msb.mall.seckill.dto.SeckillSkuRedisDto;
 import com.msb.mall.seckill.service.SeckillService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,6 +33,21 @@ public class SeckillController {
         System.out.println("seckillSessionBySkuId -----------------------");
         SeckillSkuRedisDto dto = seckillService.getSeckillSessionBySkuId(skuId);
         return R.ok().put("data", JSON.toJSONString(dto));
+    }
+
+    /**
+     * 秒杀抢购
+     * killId=1_9&code=69d55333c9ec422381024d34fdfd3e85&num=1
+     *
+     * @return
+     */
+    @GetMapping("/kill")
+    public String seckill(@RequestParam("killId") String killId,
+                          @RequestParam("code") String code,
+                          @RequestParam("num") Integer num, Model model) {
+        String orderSN = seckillService.kill(killId, code, num);
+        model.addAttribute("orderSn", orderSN);
+        return "success";
     }
 
 

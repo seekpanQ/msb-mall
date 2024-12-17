@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
@@ -23,6 +24,14 @@ public class SeckillController {
     public R getCurrentSeckillSessionSkus() {
         List<SeckillSkuRedisDto> currentSeckillSkus = seckillService.getCurrentSeckillSkus();
         return R.ok().put("data", JSON.toJSONString(currentSeckillSkus));
+    }
+
+    @GetMapping("/seckillSessionBySkuId")
+    @ResponseBody
+    public R getSeckillSessionBySkuId(@RequestParam("skuId") Long skuId) {
+        System.out.println("seckillSessionBySkuId -----------------------");
+        SeckillSkuRedisDto dto = seckillService.getSeckillSessionBySkuId(skuId);
+        return R.ok().put("data", JSON.toJSONString(dto));
     }
 
 

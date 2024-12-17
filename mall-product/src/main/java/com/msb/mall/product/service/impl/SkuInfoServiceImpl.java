@@ -1,15 +1,19 @@
 package com.msb.mall.product.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.Query;
+import com.msb.common.utils.R;
 import com.msb.mall.product.dao.SkuInfoDao;
 import com.msb.mall.product.entity.SkuImagesEntity;
 import com.msb.mall.product.entity.SkuInfoEntity;
 import com.msb.mall.product.entity.SpuInfoDescEntity;
+import com.msb.mall.product.feign.SeckillFeignService;
 import com.msb.mall.product.service.*;
+import com.msb.mall.product.vo.SeckillVO;
 import com.msb.mall.product.vo.SkuItemSaleAttrVo;
 import com.msb.mall.product.vo.SpuItemGroupAttrVo;
 import com.msb.mall.product.vo.SpuItemVO;
@@ -39,6 +43,8 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
     private ThreadPoolExecutor threadPoolExecutor;
     @Autowired
     private SkuInfoDao skuInfoDao;
+    @Autowired
+    private SeckillFeignService seckillFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -151,7 +157,17 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
             itemVO.setImages(images);
         }, threadPoolExecutor);
 
-        CompletableFuture.allOf(saleFuture, spuFuture, groupFuture, imageFuture).join();
+        CompletableFuture<Void> seckillFuture = CompletableFuture.runAsync(() -> {
+            // 查询商品的秒杀活动
+            R r = seckillFeignService.getSeckillSessionBySkuId(skuId);
+            if (r.getCode() == 0) {
+                Object data = r.get("data");
+                SeckillVO seckillVO = JSON.parseObject(data.toString(), SeckillVO.class);
+                itemVO.setSeckillVO(seckillVO);
+            }
+        }, threadPoolExecutor);
+
+        CompletableFuture.allOf(saleFuture, spuFuture, groupFuture, imageFuture, seckillFuture).join();
         return itemVO;
     }
 

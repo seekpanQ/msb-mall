@@ -174,7 +174,6 @@ public class SeckillServiceImpl implements SeckillService {
                                 boolean b = semaphore.tryAcquire(num, 100, TimeUnit.MILLISECONDS);
                                 if (b) {
                                     // 表示秒杀成功
-                                    // 表示秒杀成功
                                     String orderSN = UUID.randomUUID().toString().replace("-", "");
                                     // 继续完成快速下订单操作  --> RocketMQ
                                     SeckillOrderDto orderDto = new SeckillOrderDto();
@@ -239,7 +238,7 @@ public class SeckillServiceImpl implements SeckillService {
                             RSemaphore semaphore
                                     = redissonClient.getSemaphore(SeckillConstant.SKU_STOCK_SEMAPHORE + token);
                             // 分布式信号量的处理  限流的目的
-                            semaphore.trySetPermits(item.getSeckillLimit().intValue());
+                            semaphore.trySetPermits(item.getSeckillCount().intValue());
                             hashOps.put(skuKey, JSON.toJSONString(dto));
                         }
                     });

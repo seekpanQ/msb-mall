@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.msb.common.constant.CartConstant;
 import com.msb.common.constant.OrderConstant;
+import com.msb.common.dto.SeckillOrderDto;
 import com.msb.common.exception.NoStockExecption;
 import com.msb.common.utils.PageUtils;
 import com.msb.common.utils.Query;
@@ -204,6 +205,31 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         // 4.更新会员积分 ....
         this.updateMemberIntegrationGrowth(orderSn);
+    }
+
+    /**
+     * 快速完成订单的处理  秒杀活动
+     *
+     * @param seckillOrderDto
+     */
+    @Transactional
+    @Override
+    public void quickCreateOrder(SeckillOrderDto seckillOrderDto) {
+        OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setOrderSn(seckillOrderDto.getOrderSN());
+        orderEntity.setStatus(OrderConstant.OrderStateEnum.FOR_THE_PAYMENT.getCode());
+        orderEntity.setMemberId(seckillOrderDto.getMemberId());
+        orderEntity.setCreateTime(new Date());
+        orderEntity.setTotalAmount(seckillOrderDto.getSeckillPrice().multiply(new BigDecimal(seckillOrderDto.getNum())));
+        this.save(orderEntity);
+        // TODO 根据SKUID查询对应的SKU信息和SPU信息
+        OrderItemEntity orderItemEntity = new OrderItemEntity();
+        orderItemEntity.setOrderSn(seckillOrderDto.getOrderSN());
+        orderItemEntity.setSkuPrice(seckillOrderDto.getSeckillPrice());
+        orderItemEntity.setSkuId(seckillOrderDto.getSkuId());
+        orderItemEntity.setRealAmount(seckillOrderDto.getSeckillPrice().multiply(new BigDecimal(seckillOrderDto.getNum())));
+        orderItemEntity.setSkuQuantity(seckillOrderDto.getNum());
+        orderItemService.save(orderItemEntity);
     }
 
     /**

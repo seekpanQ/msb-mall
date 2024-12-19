@@ -3,6 +3,11 @@ spring:
     nacos:
       discovery:
         server-addr: 192.168.91.131:8848
+    sentinel:
+      transport:
+        dashboard: localhost:8080
+        port: 8719
+        client-ip: localhost
   application:
     name: mall-seckill
   redis:
@@ -23,3 +28,8 @@ rocketmq:
     group: seckill-order-producer
   consumer:
     group: seckill-order-consumer
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

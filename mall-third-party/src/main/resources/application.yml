@@ -5,7 +5,11 @@ spring:
     nacos:
       discovery:
         server-addr: 192.168.91.131:8848
-    alicloud:
+    sentinel:
+      transport:
+        dashboard: 192.168.91.131:8858
+        client-ip: 192.168.91.127
+        port: 8719
       oss:
         endpoint: oss-cn-beijing.aliyuncs.com
         bucket: study-seekpan-mall
@@ -16,3 +20,8 @@ spring:
         template-code: SMS_154950909
   application:
     name: mall-third
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

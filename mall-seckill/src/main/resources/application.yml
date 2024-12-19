@@ -5,9 +5,9 @@ spring:
         server-addr: 192.168.91.131:8848
     sentinel:
       transport:
-        dashboard: localhost:8080
+        dashboard: 192.168.91.131:8858
         port: 8719
-        client-ip: localhost
+        client-ip: 192.168.91.127
   application:
     name: mall-seckill
   redis:

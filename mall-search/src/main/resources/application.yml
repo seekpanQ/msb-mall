@@ -3,6 +3,11 @@ spring:
     nacos:
       discovery:
         server-addr: 192.168.91.131:8848
+    sentinel:
+      transport:
+        dashboard: 192.168.91.131:8858
+        client-ip: 192.168.91.127
+        port: 8719
   application:
     name: mall-search
   # 统一的全局的--设置服务器响应给客户端的日期时间格式
@@ -19,3 +24,8 @@ spring:
     port: 6379
 server:
   port: 8090
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

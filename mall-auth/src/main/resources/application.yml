@@ -3,6 +3,11 @@ spring:
     nacos:
       discovery:
         server-addr: 192.168.91.131:8848
+    sentinel:
+      transport:
+        dashboard: 192.168.91.131:8858
+        port: 8719
+        client-ip: 192.168.91.127
   application:
     name: mall-auth
   # 统一的全局的--设置服务器响应给客户端的日期时间格式
@@ -22,3 +27,8 @@ server:
   servlet:
     session:
       timeout: 30m # session超时30分钟
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

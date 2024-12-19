@@ -3,6 +3,11 @@ spring:
     nacos:
       discovery:
         server-addr: 192.168.91.131:8848
+    sentinel:
+      transport:
+        dashboard: 192.168.91.131:8858
+        client-ip: 192.168.91.127
+        port: 8719
   application:
     name: mall-cart
   thymeleaf:
@@ -17,3 +22,8 @@ spring:
     port: 6379
 server:
   port: 9020
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

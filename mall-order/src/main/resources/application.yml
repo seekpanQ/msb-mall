@@ -12,6 +12,11 @@ spring:
     alibaba:
       seata:
         tx-service-group: mall-order-group
+    sentinel:
+      transport:
+        dashboard: 192.168.91.131:8858
+        client-ip: 192.168.91.127
+        port: 8719
   application:
     name: mall-order
   session:
@@ -49,3 +54,8 @@ alipay:
   publicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkb/YfNr2FqTbiuEZ+SllEBO98G4xxaA0THGJfLOV8REFe4X5pbXT0Rhl+sn7kBvURKP74cnQbTe2Qbx3dUPUskuV3UtURPi47QulhrUaFXStABzmWFrR9jksJeuZ87h9tZuItpxH3wCY973EcRxtDB83EUMJizP1m95/AAhQZKPyqMPrQYc61KjrVUePy38dMMLkyJXLlY9KpqldfyJoERmXOs29HYEnaHEbGEHcIoMfFXf0uTBgBhI1dEMgmqWhYN40gnhtQVdE6dXHga2VBbQ4CmeDxPA7rIpRF4ZV1Nq3Ywek+lQSCi41f+WommccY64b/bJdr6lQ6XhyEpMNfQIDAQAB
   notifyUrl: http://ye10db1488083.vicp.fun/payed/notify
   returnUrl: http://order.msb.com/orderPay/returnUrl
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

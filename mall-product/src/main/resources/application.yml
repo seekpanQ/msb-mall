@@ -51,3 +51,11 @@ management:
     web:
       exposure:
         include: '*'
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 1000
+        read-timeout: 500
+  sentinel:
+    enabled: true

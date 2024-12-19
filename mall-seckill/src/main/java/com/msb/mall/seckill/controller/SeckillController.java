@@ -31,6 +31,11 @@ public class SeckillController {
     @ResponseBody
     public R getSeckillSessionBySkuId(@RequestParam("skuId") Long skuId) {
         System.out.println("seckillSessionBySkuId -----------------------");
+//        try {
+//            Thread.sleep(500);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         SeckillSkuRedisDto dto = seckillService.getSeckillSessionBySkuId(skuId);
         return R.ok().put("data", JSON.toJSONString(dto));
     }

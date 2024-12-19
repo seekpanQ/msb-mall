@@ -1,5 +1,7 @@
 package com.msb.mall.seckill.service.impl;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.fastjson.JSON;
 import com.msb.common.constant.OrderConstant;
 import com.msb.common.constant.SeckillConstant;
@@ -72,6 +74,7 @@ public class SeckillServiceImpl implements SeckillService {
      *
      * @return
      */
+    @SentinelResource(value = "currentSeckillSkusResources",blockHandler = "blockHandler")
     @Override
     public List<SeckillSkuRedisDto> getCurrentSeckillSkus() {
         // 1.确定当前时间是属于哪个秒杀活动的
@@ -100,6 +103,11 @@ public class SeckillServiceImpl implements SeckillService {
             }
 
         }
+        return null;
+    }
+
+    public List<SeckillSkuRedisDto> blockHandler(BlockException blockException){
+        log.error("限流执行的 blockHandler 方法 ....{}",blockException.getMessage());
         return null;
     }
 

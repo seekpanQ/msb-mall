@@ -13,6 +13,9 @@ import com.msb.mall.product.service.CategoryBrandRelationService;
 import com.msb.mall.product.service.CategoryService;
 import com.msb.mall.product.vo.Catalog2VO;
 import org.apache.commons.lang.StringUtils;
+import org.apache.skywalking.apm.toolkit.trace.Tag;
+import org.apache.skywalking.apm.toolkit.trace.Tags;
+import org.apache.skywalking.apm.toolkit.trace.Trace;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,6 +184,10 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return collect;
     }
 
+    @Trace
+    @Tags(
+            {@Tag(key = "getCatelog2JSON", value = "returnedObj"),
+                    @Tag(key = "param", value = "arg[0]")})
     @Cacheable(value = "catagory", key = "#root.methodName")
     @Override
     public Map<String, List<Catalog2VO>> getCatelog2JSON() {

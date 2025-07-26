@@ -1,4 +1,4 @@
-## Technical Architecture of the Mall System
+## Technical Architecture of the Backend of Mall System
 
 Modern shopping malls require robust, distributed architectures to handle high traffic, complex transactions, and real-time data processing. Here’s a breakdown of a typical cloud-native microservices architecture:
 

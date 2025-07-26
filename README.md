@@ -1,23 +1,30 @@
-# msb-mall
+Technical Architecture of the Mall System
 
-#### 介绍
-马士兵分布式三高商城系统
+Modern shopping malls require robust, distributed architectures to handle high traffic, complex transactions, and real-time data processing. Here’s a breakdown of a typical cloud-native microservices architecture:
 
-#### 软件架构
-软件架构说明
+1. Presentation Layer:
+•  Responsive UIs built with Vue.js (web) , optimized for performance.
 
+2. Application Layer (Microservices):
+• Decoupled Services: Independent components handle core functions:
 
-#### 安装教程
+Product Catalog: Manages SKUs, pricing, and categories
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+Inventory Service: Real-time stock tracking
 
-#### 使用说明
+Shopping Cart: Redis-backed ephemeral storage
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+Order Management: Orchestrates checkout flows
 
+Payment Gateway: Integrates with Stripe/PayPal
 
 
+3. Data Layer:
+• Polyglot Persistence:
+
+Relational DBs (MsqlSQL): Handle transactions (orders, payments) with ACID compliance.
+
+Search Engines (Elasticsearch): Enable faceted product discovery.
+
+Caches (Redis): Accelerate session management and hot data.
+• Event Streaming: Kafka processes real-time events (e.g., "order placed") for async communication.
